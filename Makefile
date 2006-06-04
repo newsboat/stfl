@@ -26,7 +26,8 @@ example: LDFLAGS += -L.
 example: LDLIBS += -lstfl
 example: libstfl.a
 
-libstfl.a: base.o parser.o wt_label.o wt_vbox.o wt_hbox.o
+libstfl.a: base.o parser.o \
+		wt_label.o wt_input.o wt_vbox.o wt_hbox.o
 	rm -f $@
 	ar qc $@ $^
 	ranlib $@

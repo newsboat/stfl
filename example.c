@@ -24,20 +24,31 @@
 int main()
 {
 	initscr(); cbreak(); noecho();
+	nonl(); keypad(stdscr, TRUE);
 
 	struct stfl_form *f = stfl_form_new();
 	f->root = stfl_parser(
 		"vbox						\n"
-		"  label text:'Label #1'			\n"
+		"  label text:'Little STFL example program'	\n"
 		"  hbox						\n"
 		"    label					\n"
-		"      text:'Label #2 (left side)'		\n"
+		"      text:'Field A:'				\n"
+		"    input					\n"
+		"      text:'This is'				\n"
+		"  hbox						\n"
 		"    label					\n"
-		"      text:'Label #2 (right side)'		\n"
-		"  label text:'Label #3'			\n"
+		"      text:'Field B:'				\n"
+		"    input					\n"
+		"      text:'a test..'				\n"
+		"  label text:'Happy hacking!'			\n"
 	);
 
-	stfl_form_run(f, stdscr);
+	while (1) {
+		stfl_form_run(f, stdscr);
+		if (f->event_type == STFL_EVENT_KEY_ESC)
+			break;
+	}
+
 	stfl_form_free(f);
 
 	endwin();

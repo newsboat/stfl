@@ -67,12 +67,19 @@ struct stfl_widget {
 	char *name;
 };
 
-#define STFL_EVENT_NONE		0
-#define STFL_EVENT_TIMEOUT	1
-#define STFL_EVENT_NEWVAL	2
-#define STFL_EVENT_ENTER	3
-#define STFL_EVENT_FKEY		4
-#define STFL_EVENT_NEXT		5
+#define STFL_EVENT_NONE		0x00
+#define STFL_EVENT_TIMEOUT	0x01
+#define STFL_EVENT_NEWVAL	0x02
+
+#define STFL_EVENT_KEY_ENTER	0x10
+#define STFL_EVENT_KEY_ESC	0x20
+#define STFL_EVENT_KEY_FN	0x30
+
+#define STFL_EVENT_NEXT_TAB	0x40
+#define STFL_EVENT_NEXT_LEFT	0x41
+#define STFL_EVENT_NEXT_RIGHT	0x42
+#define STFL_EVENT_NEXT_UP	0x43
+#define STFL_EVENT_NEXT_DOWN	0x44
 
 struct stfl_form {
 	struct stfl_widget *root;
@@ -82,6 +89,7 @@ struct stfl_form {
 
 extern struct stfl_widget_type *stfl_widget_type_list[];
 extern struct stfl_widget_type stfl_widget_type_label;
+extern struct stfl_widget_type stfl_widget_type_input;
 extern struct stfl_widget_type stfl_widget_type_vbox;
 extern struct stfl_widget_type stfl_widget_type_hbox;
 
@@ -89,14 +97,21 @@ extern struct stfl_widget *stfl_widget_new(const char *type);
 extern struct stfl_widget *stfl_widget_copy(struct stfl_widget *w);
 extern void stfl_widget_free(struct stfl_widget *w);
 
-extern struct stfl_kv *stfl_widget_setkv(struct stfl_widget *w, const char *key, const char *value);
+extern struct stfl_kv *stfl_widget_setkv_str(struct stfl_widget *w, const char *key, const char *value);
+extern struct stfl_kv *stfl_widget_setkv_int(struct stfl_widget *w, const char *key, int value);
+
 extern struct stfl_kv *stfl_widget_getkv(struct stfl_widget *w, const char *key);
+extern int stfl_widget_getkv_int(struct stfl_widget *w, const char *key, int defval);
+extern const char *stfl_widget_getkv_str(struct stfl_widget *w, const char *key, const char *defval);
+
 
 extern struct stfl_widget *stfl_widget_by_name(struct stfl_widget *w, const char *name);
 extern struct stfl_widget *stfl_widget_by_id(struct stfl_widget *w, int id);
 
 extern struct stfl_kv *stfl_kv_by_name(struct stfl_widget *w, const char *name);
 extern struct stfl_kv *stfl_kv_by_id(struct stfl_widget *w, int id);
+
+extern int stfl_core_events(struct stfl_widget *w, struct stfl_form *f, WINDOW *win, int ch);
 
 extern struct stfl_form *stfl_form_new();
 extern void stfl_form_run(struct stfl_form *f, WINDOW *win);

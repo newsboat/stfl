@@ -21,13 +21,13 @@
 
 #include "stfl.h"
 
+#include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 
-#include <assert.h>
-
 struct stfl_widget_type *stfl_widget_type_list[] = {
 	&stfl_widget_type_label,
+	&stfl_widget_type_input,
 	&stfl_widget_type_vbox,
 	&stfl_widget_type_hbox,
 	0
@@ -57,7 +57,8 @@ struct stfl_widget *stfl_widget_new(const char *type)
 
 struct stfl_widget *stfl_widget_copy(struct stfl_widget *w)
 {
-	assert(!"Not implemented.");
+	fprintf(stderr, "STFL Fatal Error: stfl_widget_copy() is not implemeted.\n");
+	abort();
 }
 
 void stfl_widget_free(struct stfl_widget *w)
@@ -103,7 +104,7 @@ void stfl_widget_free(struct stfl_widget *w)
 	free(w);
 }
 
-struct stfl_kv *stfl_widget_setkv(struct stfl_widget *w, const char *key, const char *value)
+struct stfl_kv *stfl_widget_setkv_str(struct stfl_widget *w, const char *key, const char *value)
 {
 	struct stfl_kv *kv = w->kv_list;
 	while (kv) {
@@ -125,6 +126,13 @@ struct stfl_kv *stfl_widget_setkv(struct stfl_widget *w, const char *key, const 
 	return kv;
 }
 
+extern struct stfl_kv *stfl_widget_setkv_int(struct stfl_widget *w, const char *key, int value)
+{
+	char newtext[64];
+	snprintf(newtext, 64, "%d", value);
+	return stfl_widget_setkv_str(w, key, newtext);
+}
+
 struct stfl_kv *stfl_widget_getkv(struct stfl_widget *w, const char *key)
 {
 	struct stfl_kv *kv = w->kv_list;
@@ -140,24 +148,141 @@ struct stfl_kv *stfl_widget_getkv(struct stfl_widget *w, const char *key)
 	return 0;
 }
 
+int stfl_widget_getkv_int(struct stfl_widget *w, const char *key, int defval)
+{
+	struct stfl_kv *kv = stfl_widget_getkv(w, key);
+	char *endptr;
+	int ret;
+
+	if (!kv || !kv->value[0])
+		return defval;
+
+	ret = strtol(kv->value, &endptr, 10);
+
+	if (*endptr)
+		return defval;
+
+	return ret;
+}
+
+const char *stfl_widget_getkv_str(struct stfl_widget *w, const char *key, const char *defval)
+{
+	struct stfl_kv *kv = stfl_widget_getkv(w, key);
+	return kv ? kv->value : defval;
+}
+
 struct stfl_widget *stfl_widget_by_name(struct stfl_widget *w, const char *name)
 {
-	assert(!"Not implemented.");
+	if (w->name && !strcmp(w->name, name))
+		return w;
+
+	w = w->first_child;
+	while (w) {
+		struct stfl_widget *r = stfl_widget_by_name(w, name);
+		if (r) return r;
+		w = w->next_sibling;
+	}
+
+	return 0;
 }
 
 struct stfl_widget *stfl_widget_by_id(struct stfl_widget *w, int id)
 {
-	assert(!"Not implemented.");
+	if (w->id == id)
+		return w;
+
+	w = w->first_child;
+	while (w) {
+		struct stfl_widget *r = stfl_widget_by_id(w, id);
+		if (r) return r;
+		w = w->next_sibling;
+	}
+
+	return 0;
 }
 
 struct stfl_kv *stfl_kv_by_name(struct stfl_widget *w, const char *name)
 {
-	assert(!"Not implemented.");
+	struct stfl_kv *kv = w->kv_list;
+	while (kv) {
+		if (kv->name && !strcmp(kv->name, name))
+			return kv;
+		kv = kv->next;
+	}
+
+	w = w->first_child;
+	while (w) {
+		struct stfl_kv *r = stfl_kv_by_name(w, name);
+		if (r) return r;
+		w = w->next_sibling;
+	}
+
+	return 0;
 }
 
 struct stfl_kv *stfl_kv_by_id(struct stfl_widget *w, int id)
 {
-	assert(!"Not implemented.");
+	struct stfl_kv *kv = w->kv_list;
+	while (kv) {
+		if (kv->id == id)
+			return kv;
+		kv = kv->next;
+	}
+
+	w = w->first_child;
+	while (w) {
+		struct stfl_kv *r = stfl_kv_by_id(w, id);
+		if (r) return r;
+		w = w->next_sibling;
+	}
+
+	return 0;
+}
+
+int stfl_core_events(struct stfl_widget *w, struct stfl_form *f, WINDOW *win, int ch)
+{
+	if (ch == '\r' || ch == '\n') {
+		f->event_type = STFL_EVENT_KEY_ENTER;
+		return 1;
+	}
+
+	if (ch == 27) {
+		f->event_type = STFL_EVENT_KEY_ESC;
+		return 1;
+	}
+
+	if (KEY_F(0) <= ch && ch <= KEY_F(63)) {
+		f->event_type = STFL_EVENT_KEY_FN;
+		f->event_value = ch - KEY_F0;
+		return 1;
+	}
+
+	if (ch == '\t') {
+		f->event_type = STFL_EVENT_NEXT_TAB;
+		return 1;
+	}
+
+	if (ch == KEY_LEFT) {
+		f->event_type = STFL_EVENT_NEXT_LEFT;
+		return 1;
+	}
+
+	if (ch == KEY_RIGHT) {
+		f->event_type = STFL_EVENT_NEXT_RIGHT;
+		return 1;
+	}
+
+	if (ch == KEY_UP) {
+		f->event_type = STFL_EVENT_NEXT_UP;
+		return 1;
+	}
+
+	if (ch == KEY_DOWN) {
+		f->event_type = STFL_EVENT_NEXT_DOWN;
+		return 1;
+	}
+
+	return 0;
 }
 
 struct stfl_form *stfl_form_new()
@@ -183,7 +308,30 @@ void stfl_form_run(struct stfl_form *f, WINDOW *win)
 	f->root->type->f_draw(f->root, win);
 	refresh();
 
-	sleep(1);
+	struct stfl_widget *fw = stfl_widget_by_id(f->root, f->current_focus_id);
+
+	if (fw == 0)
+	{
+		fw = f->root;
+		while (fw)
+		{
+			if (fw->allow_focus)
+				break;
+
+			if (fw->first_child)
+				fw = fw->first_child;
+			else
+			if (fw->next_sibling)
+				fw = fw->next_sibling;
+			else
+				fw = fw->parent ? fw->parent->next_sibling : 0;
+		}
+	}
+
+	if (fw != 0) {
+		fw->type->f_run(fw, f, win);
+		f->current_focus_id = fw->id;
+	}
 }
 
 void stfl_form_free(struct stfl_form *f)

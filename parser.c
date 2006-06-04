@@ -21,9 +21,9 @@
 
 #include "stfl.h"
 
+#include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include <assert.h>
 
 static int read_type(const char **text, char **type)
 {
@@ -114,19 +114,22 @@ struct stfl_widget *stfl_parser(const char *text)
 			break;
 
 		char *key, *value;
-		assert(indenting >= 0);
+		if (indenting < 0)
+			goto parser_error;
 
 		if (root)
 		{
 			while (current->parser_indent >= indenting) {
 				current = current->parent;
-				assert(current);
+				if (!current)
+					goto parser_error;
 			}
 
 			if (read_type(&text, &key) == 1)
 			{
 				struct stfl_widget *n = stfl_widget_new(key);
-				assert(n != 0);
+				if (!n)
+					goto parser_error;
 				free(key);
 
 				n->parent = current;
@@ -144,18 +147,20 @@ struct stfl_widget *stfl_parser(const char *text)
 			else
 			if (read_kv(&text, &key, &value) == 1)
 			{
-				stfl_widget_setkv(current, key, value);
+				stfl_widget_setkv_str(current, key, value);
 				free(key); free(value);
 			}
 			else
-				assert(!"Syntax error");
+				goto parser_error;
 		}
 		else
 		{
-			assert(read_type(&text, &key) == 1);
+			if (read_type(&text, &key) == 0)
+				goto parser_error;
 
 			struct stfl_widget *n = stfl_widget_new(key);
-			assert(n != 0);
+			if (!n)
+				goto parser_error;
 			free(key);
 
 			root = n;
@@ -168,13 +173,36 @@ struct stfl_widget *stfl_parser(const char *text)
 				text++;
 
 			if (*text != '\n' && *text != '\r') {
-				assert(read_kv(&text, &key, &value) == 1);
-				stfl_widget_setkv(current, key, value);
+				if (read_kv(&text, &key, &value) == 0)
+					goto parser_error;
+				stfl_widget_setkv_str(current, key, value);
 				free(key); free(value);
 			}
 		}
 	}
 
 	return root;
+
+parser_error:;
+	int i;
+
+	fprintf(stderr, "STFL Parser Error near '");
+
+	for (i=0; *text && i<20; i++, text++)
+		if (*text == '\n')
+			fprintf(stderr, "\\n");
+		else
+		if (*text == '\t')
+			fprintf(stderr, " ");
+		else
+		if (*text < 32)
+			fprintf(stderr, "\\%03o", *text);
+		else
+			fprintf(stderr, "%c", *text);
+
+	fprintf(stderr, "'.\r\n");
+	abort();
+
+	return 0;
 }
 
