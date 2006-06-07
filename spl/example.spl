@@ -1,0 +1,64 @@
+/*
+ *  STFL - The Structured Terminal Forms Language/Library
+ *  Copyright (C) 2006  Clifford Wolf <clifford@clifford.at>
+ *
+ *  This program is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 2 of the License, or
+ *  (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program; if not, write to the Free Software
+ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ *
+ *  example.spl: A little STFL SPL example
+ */
+
+load "stfl";
+
+var fields = [
+	name: "Name",
+	email: "E-Mail",
+	web: "Web-Address",
+	desc: "Description"
+];
+
+var f = stfl_create(<:>
+	: vbox[root]
+	:   @input.focus:bg=blue,fg=white,attr=bold
+	:   @input.style:bg=blue,fg=black
+	<spl:foreach var="i" list="fields">
+	:   hbox
+	:     .expand:0 .height:2
+	:     label
+	:       .expand:0 .width:15
+	:       text:'${fields[i]}:'
+	:     input[${i}]
+	:       text[${i}_value]:''
+	</spl:foreach>
+</>);
+
+stfl_set(f, "name_value", "Clifford Wolf");
+stfl_set(f, "email_value", "clifford@clifford.at");
+stfl_set(f, "web_value", "http://www.clifford.at/");
+stfl_set(f, "desc_value", "Author of STFL, SPL and many other things.");
+
+while (1) {
+	var rc = stfl_run(f);
+	if (rc ~== "F1") stfl_set_focus(f, "name");
+	if (rc ~== "F2") stfl_set_focus(f, "email");
+	if (rc ~== "F3") stfl_set_focus(f, "web");
+	if (rc ~== "F4") stfl_set_focus(f, "desc");
+	if (rc ~== "ESC") break;
+}
+
+stfl_return();
+
+foreach i (fields)
+	write("$i: ${stfl_get(f, "${i}_value")}\n");
+

@@ -1,5 +1,5 @@
 /*
- *  STFL - The Simple Terminal Forms Library
+ *  STFL - The Structured Terminal Forms Language/Library
  *  Copyright (C) 2006  Clifford Wolf <clifford@clifford.at>
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -21,37 +21,28 @@
 
 #include "stfl.h"
 
+#include <string.h>
+#include <stdlib.h>
+#include <stdio.h>
+
 int main()
 {
-	initscr(); cbreak(); noecho();
-	nonl(); keypad(stdscr, TRUE);
+	struct stfl_form *f = stfl_create("<example.stfl>");
 
-	struct stfl_form *f = stfl_form_new();
-	f->root = stfl_parser(
-		"vbox						\n"
-		"  label text:'Little STFL example program'	\n"
-		"  hbox						\n"
-		"    label					\n"
-		"      text:'Field A:'				\n"
-		"    input					\n"
-		"      text:'This is'				\n"
-		"  hbox						\n"
-		"    label					\n"
-		"      text:'Field B:'				\n"
-		"    input					\n"
-		"      text:'a test..'				\n"
-		"  label text:'Happy hacking!'			\n"
-	);
+	stfl_set(f, "value_a", "This is a little");
+	stfl_set(f, "value_b", "test for STFL!");
 
-	while (1) {
-		stfl_form_run(f, stdscr);
-		if (f->event_type == STFL_EVENT_KEY_ESC)
-			break;
-	}
+	const char *event = 0;
+	while (!event || strcmp(event, "ESC"))
+		event = stfl_run(f, 0);
 
-	stfl_form_free(f);
+	stfl_return();
 
-	endwin();
+	printf("A: %s\n", stfl_get(f, "value_a"));
+	printf("B: %s\n", stfl_get(f, "value_b"));
+	printf("C: %s\n", stfl_get(f, "value_c"));
+
+	stfl_free(f);
 
 	return 0;
 }

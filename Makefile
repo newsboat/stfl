@@ -1,5 +1,5 @@
 #
-#  STFL - The Simple Terminal Forms Library
+#  STFL - The Structured Terminal Forms Language/Library
 #  Copyright (C) 2006  Clifford Wolf <clifford@clifford.at>
 #
 #  This program is free software; you can redistribute it and/or modify
@@ -17,7 +17,9 @@
 #  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
 
-CFLAGS += -Wall -O0 -ggdb
+prefix = /usr/local
+
+CFLAGS += -I. -Wall -O0 -ggdb
 LDLIBS += -lcurses
 
 all: libstfl.a example
@@ -26,8 +28,8 @@ example: LDFLAGS += -L.
 example: LDLIBS += -lstfl
 example: libstfl.a
 
-libstfl.a: base.o parser.o \
-		wt_label.o wt_input.o wt_vbox.o wt_hbox.o
+libstfl.a: public.o base.o parser.o dump.o style.o \
+           wt_label.o wt_input.o wt_box.o wt_table.o
 	rm -f $@
 	ar qc $@ $^
 	ranlib $@
@@ -36,9 +38,37 @@ clean:
 	rm -f libstfl.a example
 	rm -f core core.* *.o
 	rm -f Makefile.deps
+	rm -f spl/mod_stfl.so
 
 Makefile.deps: *.c *.h
 	$(CC) -MM *.c > Makefile.deps
+
+install: all
+	install -m 644 libstfl.a $(prefix)/lib/
+	install -m 644 stfl.h $(prefix)/include/
+
+
+### Build and install STFL SPL module if SPL is installed ###
+
+ifneq ($(shell spl-config 2>/dev/null),)
+
+spl/mod_stfl.so: libstfl.a stfl.h spl/mod_stfl.c
+	gcc -shared $(CFLAGS) $(LDFLAGS) spl/mod_stfl.c \
+			-L. -lstfl $(LDLIBS) -o spl/mod_stfl.so
+
+all: spl/mod_stfl.so
+
+install_spl: spl/mod_stfl.so
+	install spl/mod_stfl.so `spl-config --moddir`/mod_stfl.so
+
+install: install_spl
+
+endif
+
+
+### The glory final hacks ###
+
+.PHONY: all clean install install_spl
 
 include Makefile.deps
 

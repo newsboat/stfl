@@ -1,5 +1,5 @@
 /*
- *  STFL - The Simple Terminal Forms Library
+ *  STFL - The Structured Terminal Forms Language/Library
  *  Copyright (C) 2006  Clifford Wolf <clifford@clifford.at>
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -19,22 +19,21 @@
  *  wt_label.c: Widget type 'label'
  */
 
+#define STFL_PRIVATE 1
 #include "stfl.h"
 
 #include <string.h>
 
-static void wt_label_getminwh(struct stfl_widget *w)
+static void wt_label_prepare(struct stfl_widget *w, struct stfl_form *f)
 {
-	struct stfl_kv *val = stfl_widget_getkv(w, "text");
-	w->min_w = !val || !val->value[0] ? 1 : strlen(val->value);
+	w->min_w = strlen(stfl_widget_getkv_str(w, "text", ""));
 	w->min_h = 1;
 }
 
-static void wt_label_draw(struct stfl_widget *w, WINDOW *win)
+static void wt_label_draw(struct stfl_widget *w, struct stfl_form *f, WINDOW *win)
 {
-	struct stfl_kv *val = stfl_widget_getkv(w, "text");
-	if (val)
-		mvwaddstr(win, w->y, w->x, val->value);
+	stfl_widget_style(w, f, win);
+	mvwaddnstr(win, w->y, w->x, stfl_widget_getkv_str(w, "text", ""), w->w);
 }
 
 struct stfl_widget_type stfl_widget_type_label = {
@@ -43,8 +42,8 @@ struct stfl_widget_type stfl_widget_type_label = {
 	0, // f_done
 	0, // f_enter 
 	0, // f_leave
-	wt_label_getminwh,
+	wt_label_prepare,
 	wt_label_draw,
-	0 // f_run
+	0  // f_process
 };
 
