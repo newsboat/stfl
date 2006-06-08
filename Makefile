@@ -44,6 +44,8 @@ Makefile.deps: *.c *.h
 	$(CC) -MM *.c > Makefile.deps
 
 install: all
+	mkdir -p $(prefix)/lib
+	mkdir -p $(prefix)/include
 	install -m 644 libstfl.a $(prefix)/lib/
 	install -m 644 stfl.h $(prefix)/include/
 
@@ -59,7 +61,8 @@ spl/mod_stfl.so: libstfl.a stfl.h spl/mod_stfl.c
 all: spl/mod_stfl.so
 
 install_spl: spl/mod_stfl.so
-	install spl/mod_stfl.so `spl-config --moddir`/mod_stfl.so
+	mkdir -p $(prefix)/lib/spl_modules
+	install spl/mod_stfl.so $(prefix)/lib/spl_modules/
 
 install: install_spl
 

@@ -9,15 +9,12 @@ vbox
     .expand:0
     text:'Little STFL example program'
 
-  hbox
-    .height:1 .expand:0
-
   table
-    .height:2
     .expand:0
     label#L
       .expand:0
       .border:ltb
+      .spacer:r
       text:'Field A:'
     input
       .colspan:3
@@ -35,6 +32,7 @@ vbox
     label#L
       .expand:0
       .border:ltb
+      .spacer:r
       text:'Field B:'
     input
       .border:rtb
@@ -42,13 +40,11 @@ vbox
     label#L
       .expand:0
       .border:ltb
-      text:'  Field C:'
+      .spacer:r
+      text:'Field C:'
     input
       .border:rtb
       text[value_c]:'Hello'"'"'World!'
-
-  hbox
-    .height:1 .expand:0
 
   hbox
     vbox

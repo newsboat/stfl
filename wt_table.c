@@ -31,14 +31,19 @@
 
 struct table_cell_data {
 	struct stfl_widget *w;
-	int vexpand, hexpand, spanpadding;
-	int colspan_nr, rowspan_nr;
-	int colspan, rowspan;
+	struct table_cell_data *mastercell;
+	unsigned char vexpand, hexpand, spanpadding;
+	unsigned char colspan_nr, rowspan_nr;
+	unsigned char colspan, rowspan;
+	unsigned char mc_border_l, mc_border_r;
+	unsigned char mc_border_t, mc_border_b;
+	unsigned char border_l, border_r;
+	unsigned char border_t, border_b;
 };
 
 struct table_rowcol_data {
-	int min, size;
-	int expand;
+	unsigned char min, size;
+	unsigned char expand;
 };
 
 struct table_data {
@@ -60,6 +65,10 @@ static void free_table_data(struct table_data *d)
 	free(d->rowd);
 	free(d->cold);
 	free(d);
+}
+
+static inline int max(int a, int b) {
+	return a > b ? a : b;
 }
 
 static void wt_table_done(struct stfl_widget *w)
@@ -95,24 +104,24 @@ static void wt_table_prepare(struct stfl_widget *w, struct stfl_form *f)
 
 			assert(col_counter < MAX_COLS && row_counter < MAX_ROWS);
 
-			if (col_counter >= d->cols)
-				d->cols = col_counter+1;
-			if (row_counter >= d->rows)
-				d->rows = row_counter+1;
+			d->cols = max(d->cols, col_counter+1);
+			d->rows = max(d->rows, row_counter+1);
 
 			int colspan = stfl_widget_getkv_int(c, ".colspan", 1);
 			int rowspan = stfl_widget_getkv_int(c, ".rowspan", 1);
 
-			if (colspan > max_colspan)
-				max_colspan = colspan;
+			max_colspan = max(max_colspan, colspan);
+			max_rowspan = max(max_rowspan, rowspan);
 
-			if (rowspan > max_rowspan)
-				max_rowspan = rowspan;
+			const char *expand = stfl_widget_getkv_str(c, ".expand", "vh");
+			const char *spacer = stfl_widget_getkv_str(c, ".spacer", "");
+			const char *border = stfl_widget_getkv_str(c, ".border", "");
 
 			for (i=col_counter; i<col_counter+colspan; i++)
 			for (j=row_counter; j<row_counter+rowspan; j++)
 			{
 				d->map[i][j] = calloc(1, sizeof(struct table_cell_data));
+				d->map[i][j]->mastercell = d->map[col_counter][row_counter];
 
 				if (i != col_counter || j != row_counter)
 					d->map[i][j]->spanpadding = 1;
@@ -120,9 +129,34 @@ static void wt_table_prepare(struct stfl_widget *w, struct stfl_form *f)
 				d->map[i][j]->colspan_nr = i-col_counter;
 				d->map[i][j]->rowspan_nr = j-row_counter;
 
-				char *expand = stfl_widget_getkv_str(c, ".expand", "vh");
 				d->map[i][j]->vexpand = strchr(expand, 'v') != 0;
 				d->map[i][j]->hexpand = strchr(expand, 'h') != 0;
+
+				if (i == col_counter) {
+					if (strchr(spacer, 'l') != 0) d->map[i][j]->border_l = 1;
+					if (strchr(border, 'l') != 0) d->map[i][j]->border_l = 2;
+				}
+
+				if (i == col_counter+colspan-1) {
+					if (strchr(spacer, 'r') != 0) d->map[i][j]->border_r = 1;
+					if (strchr(border, 'r') != 0) d->map[i][j]->border_r = 2;
+				}
+
+				if (j == row_counter) {
+					if (strchr(spacer, 't') != 0) d->map[i][j]->border_t = 1;
+					if (strchr(border, 't') != 0) d->map[i][j]->border_t = 2;
+				}
+
+				if (j == row_counter+rowspan-1) {
+					if (strchr(spacer, 'b') != 0) d->map[i][j]->border_b = 1;
+					if (strchr(border, 'b') != 0) d->map[i][j]->border_b = 2;
+				}
+
+				if (i > 0 && d->map[i-1][j])
+					d->map[i-1][j]->border_r = d->map[i][j]->border_l = max(d->map[i-1][j]->border_r, d->map[i][j]->border_l);
+
+				if (j > 0 && d->map[i][j-1])
+					d->map[i][j-1]->border_b = d->map[i][j]->border_t = max(d->map[i][j-1]->border_b, d->map[i][j]->border_t);
 
 				d->map[i][j]->colspan = colspan;
 				d->map[i][j]->rowspan = rowspan;
@@ -187,25 +221,32 @@ static void wt_table_prepare(struct stfl_widget *w, struct stfl_form *f)
 	for (row_counter=0; row_counter < d->rows; row_counter++)
 	for (col_counter=0; col_counter < d->cols; col_counter++)
 	{
-		int min_w = d->map[col_counter][row_counter]->w->min_w;
-		int colspan = d->map[col_counter][row_counter]->colspan;
-		int colspan_nr = d->map[col_counter][row_counter]->colspan_nr;
-		int size_w = stfl_widget_getkv_int(d->map[col_counter][row_counter]->w, ".width", 1);
-		if (size_w > min_w) min_w = size_w;
-		min_w = min_w / colspan + (colspan_nr < min_w % colspan ? 1 : 0);
+		struct table_cell_data *m = d->map[col_counter][row_counter];
 
-		int min_h = d->map[col_counter][row_counter]->w->min_h;
-		int rowspan = d->map[col_counter][row_counter]->rowspan;
-		int rowspan_nr = d->map[col_counter][row_counter]->rowspan_nr;
-		int size_h = stfl_widget_getkv_int(d->map[col_counter][row_counter]->w, ".height", 1);
-		if (size_h > min_h) min_h = size_h;
-		min_h = min_h / rowspan + (rowspan_nr < min_h % rowspan ? 1 : 0);
+		int min_w = max(m->w->min_w, stfl_widget_getkv_int(m->w, ".width", 1));
+		min_w = min_w / m->colspan + (m->colspan_nr < min_w % m->colspan ? 1 : 0);
 
-		if (d->cold[col_counter].min < min_w)
-			d->cold[col_counter].min = min_w;
+		int min_h = max(m->w->min_h, stfl_widget_getkv_int(m->w, ".height", 1));
+		min_h = min_h / m->rowspan + (m->rowspan_nr < min_h % m->rowspan ? 1 : 0);
 
-		if (d->rowd[row_counter].min < min_h)
-			d->rowd[row_counter].min = min_h;
+		if (col_counter == 0 && m->border_l) min_w += 3;
+		if (row_counter == 0 && m->border_t) min_h += 1;
+
+		if (m->border_r) min_w += 3;
+		if (m->border_b) min_h += 1;
+
+		d->cold[col_counter].min = max(d->cold[col_counter].min, min_w);
+		d->rowd[row_counter].min = max(d->rowd[row_counter].min, min_h);
+	}
+
+	for (row_counter=0; row_counter < d->rows; row_counter++)
+	for (col_counter=0; col_counter < d->cols; col_counter++)
+	{
+		struct table_cell_data *m = d->map[col_counter][row_counter];
+		m->mastercell->mc_border_l = max(m->mastercell->mc_border_l, m->border_l);
+		m->mastercell->mc_border_r = max(m->mastercell->mc_border_r, m->border_r);
+		m->mastercell->mc_border_t = max(m->mastercell->mc_border_t, m->border_t);
+		m->mastercell->mc_border_b = max(m->mastercell->mc_border_b, m->border_b);
 	}
 
 	w->min_h = w->min_w = 0;
@@ -213,6 +254,60 @@ static void wt_table_prepare(struct stfl_widget *w, struct stfl_form *f)
 		w->min_h += d->rowd[row_counter].min;
 	for (col_counter=0; col_counter < d->cols; col_counter++)
 		w->min_w += d->cold[col_counter].min;
+}
+
+void make_corner(WINDOW *win, int x, int y, int left, int right, int up, int down)
+{
+	switch ((left?01000:0) | (right?00100:0) | (up?00010:0) | (down?00001:0))
+	{
+	case 00000: // LEFT-RIGHT-UP-DOWN
+		break;
+	case 00001: // LEFT-RIGHT-UP-DOWN
+		mvwaddch(win, y, x, ACS_VLINE);
+		break;
+	case 00010: // LEFT-RIGHT-UP-DOWN
+		mvwaddch(win, y, x, ACS_VLINE);
+		break;
+	case 00011: // LEFT-RIGHT-UP-DOWN
+		mvwaddch(win, y, x, ACS_VLINE);
+		break;
+	case 00100: // LEFT-RIGHT-UP-DOWN
+		mvwaddch(win, y, x, ACS_HLINE);
+		break;
+	case 00101: // LEFT-RIGHT-UP-DOWN
+		mvwaddch(win, y, x, ACS_ULCORNER);
+		break;
+	case 00110: // LEFT-RIGHT-UP-DOWN
+		mvwaddch(win, y, x, ACS_LLCORNER);
+		break;
+	case 00111: // LEFT-RIGHT-UP-DOWN
+		mvwaddch(win, y, x, ACS_LTEE);
+		break;
+	case 01000: // LEFT-RIGHT-UP-DOWN
+		mvwaddch(win, y, x, ACS_HLINE);
+		break;
+	case 01001: // LEFT-RIGHT-UP-DOWN
+		mvwaddch(win, y, x, ACS_URCORNER);
+		break;
+	case 01010: // LEFT-RIGHT-UP-DOWN
+		mvwaddch(win, y, x, ACS_LRCORNER);
+		break;
+	case 01011: // LEFT-RIGHT-UP-DOWN
+		mvwaddch(win, y, x, ACS_RTEE);
+		break;
+	case 01100: // LEFT-RIGHT-UP-DOWN
+		mvwaddch(win, y, x, ACS_HLINE);
+		break;
+	case 01101: // LEFT-RIGHT-UP-DOWN
+		mvwaddch(win, y, x, ACS_TTEE);
+		break;
+	case 01110: // LEFT-RIGHT-UP-DOWN
+		mvwaddch(win, y, x, ACS_BTEE);
+		break;
+	case 01111: // LEFT-RIGHT-UP-DOWN
+		mvwaddch(win, y, x, ACS_PLUS);
+		break;
+	}
 }
 
 static void wt_table_draw(struct stfl_widget *w, struct stfl_form *f, WINDOW *win)
@@ -258,7 +353,8 @@ static void wt_table_draw(struct stfl_widget *w, struct stfl_form *f, WINDOW *wi
 		{
 			if (d->map[i][j] && !d->map[i][j]->spanpadding)
 			{
-				struct stfl_widget *c = d->map[i][j]->w;
+				struct table_cell_data *m = d->map[i][j];
+				struct stfl_widget *c = m->w;
 
 				c->x = x; c->w = 0;
 				c->y = y; c->h = 0;
@@ -269,6 +365,22 @@ static void wt_table_draw(struct stfl_widget *w, struct stfl_form *f, WINDOW *wi
 				for (k=j; k < j + d->map[i][j]->rowspan; k++)
 					c->h += d->rowd[k].size;
 
+				if (m->mc_border_l && i == 0) {
+					c->x += 3;
+					c->w -= 3;
+				}
+
+				if (m->mc_border_t && j == 0) {
+					c->y++;
+					c->h--;
+				}
+
+				if (m->mc_border_r)
+					c->w -= 3;
+
+				if (m->mc_border_b)
+					c->h--;
+
 				c->type->f_draw(c, f, win);
 			}
 			x += d->cold[i].size;
@@ -276,8 +388,96 @@ static void wt_table_draw(struct stfl_widget *w, struct stfl_form *f, WINDOW *wi
 		y += d->rowd[j].size;
 	}
 
-	// stfl_widget_style(w, f, win);
-	// FIXME: draw borders
+	stfl_widget_style(w, f, win);
+
+	y = w->y;
+	for (j=0; j < d->rows; j++)
+	{
+		int x = w->x;
+		for (i=0; i < d->cols; i++)
+		{
+			if (d->map[i][j])
+			{
+				struct table_cell_data *m = d->map[i][j];
+				int box_x = x, box_w = d->cold[i].size;
+				int box_y = y, box_h = d->rowd[j].size;
+
+				if (i == 0) {
+					if (m->border_l > 1 && box_h > (j ? 1 : 2)) {
+						wmove(win, box_y+(j ? 0 : 1), box_x+1);
+						wvline(win, ACS_VLINE, box_h - (j ? 1 : 2));
+					}
+				} else {
+					box_x -= 3;
+					box_w += 3;
+				}
+
+				if (j == 0) {
+					if (m->border_t > 1 && box_w > 4) {
+						wmove(win, box_y, box_x+2);
+						whline(win, ACS_HLINE, box_w-4);
+					}
+				} else {
+					box_y--;
+					box_h++;
+				}
+
+				if (m->border_r > 1 && box_h > 2) {
+					wmove(win, box_y+1, box_x+box_w-2);
+					wvline(win, ACS_VLINE, box_h-2);
+				}
+
+				if (m->border_b > 1 && box_w > 4) {
+					wmove(win, box_y+box_h-1, box_x+2);
+					whline(win, ACS_HLINE, box_w-4);
+				}
+
+				int left, right, up, down;
+
+				struct table_cell_data *left_m = i > 0 ? d->map[i-1][j] : 0;
+				struct table_cell_data *right_m = i < d->cols-1 ? d->map[i+1][j] : 0;
+
+				struct table_cell_data *up_m = j > 0 ? d->map[i][j-1] : 0;
+				struct table_cell_data *down_m = j < d->rows-1 ? d->map[i][j+1] : 0;
+
+				// upper left corner
+				if (i == 0 && j == 0) {
+					left = left_m ? left_m->border_t : 0;
+					right = m->border_t;
+					up = up_m ? up_m->border_l : 0;
+					down = m->border_l;
+					make_corner(win, box_x+1, box_y, left>1, right>1, up>1, down>1);
+				}
+
+				// lower left corner
+				if (i == 0) {
+					left = left_m ? left_m->border_b : 0;
+					right = m->border_b;
+					up = m->border_l;
+					down = down_m ? down_m->border_l : 0;
+					make_corner(win, box_x+1, box_y+box_h-1, left>1, right>1, up>1, down>1);
+				}
+
+				// upper right corner
+				if (j == 0) {
+					left = m->border_t;
+					right = right_m ? right_m->border_t : 0;
+					up = up_m ? up_m->border_r : 0;
+					down = m->border_r;
+					make_corner(win, box_x+box_w-2, box_y, left>1, right>1, up>1, down>1);
+				}
+
+				// lower right corner
+				left = m->border_b;
+				right = right_m ? right_m->border_b : 0;
+				up = m->border_r;
+				down = down_m ? down_m->border_r : 0;
+				make_corner(win, box_x+box_w-2, box_y+box_h-1, left>1, right>1, up>1, down>1);
+			}
+			x += d->cold[i].size;
+		}
+		y += d->rowd[j].size;
+	}
 }
 
 struct stfl_widget_type stfl_widget_type_table = {

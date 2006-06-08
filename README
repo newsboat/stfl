@@ -548,7 +548,7 @@ The default mode is "interactive".
 TODOs
 -----
 
-- Widgets: finish "table" and add "list"
+- Widgets: add "list" and "checkbox"
 - Improve error handling and reporting
 - Bigger SPL example application
 - Bindings for more scripting languages
