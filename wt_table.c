@@ -104,14 +104,14 @@ static void wt_table_prepare(struct stfl_widget *w, struct stfl_form *f)
 
 			assert(col_counter < MAX_COLS && row_counter < MAX_ROWS);
 
-			d->cols = max(d->cols, col_counter+1);
-			d->rows = max(d->rows, row_counter+1);
-
 			int colspan = stfl_widget_getkv_int(c, ".colspan", 1);
 			int rowspan = stfl_widget_getkv_int(c, ".rowspan", 1);
 
 			max_colspan = max(max_colspan, colspan);
 			max_rowspan = max(max_rowspan, rowspan);
+
+			d->cols = max(d->cols, col_counter+colspan);
+			d->rows = max(d->rows, row_counter+rowspan);
 
 			const char *expand = stfl_widget_getkv_str(c, ".expand", "vh");
 			const char *spacer = stfl_widget_getkv_str(c, ".spacer", "");
@@ -206,7 +206,7 @@ static void wt_table_prepare(struct stfl_widget *w, struct stfl_form *f)
 			continue;
 
 		int expand_ok = 0;
-		for (j=0; j < d->map[col_counter][row_counter]->colspan; j++)
+		for (j=0; j < d->map[col_counter][row_counter]->rowspan; j++)
 			if (d->rowd[row_counter+j].expand) {
 				expand_ok = 1;
 				break;
@@ -214,7 +214,7 @@ static void wt_table_prepare(struct stfl_widget *w, struct stfl_form *f)
 		if (expand_ok)
 			continue;
 
-		for (j=0; j < d->map[col_counter][row_counter]->colspan; j++)
+		for (j=0; j < d->map[col_counter][row_counter]->rowspan; j++)
 			d->rowd[row_counter+j].expand = 1;
 	}
 

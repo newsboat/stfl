@@ -558,6 +558,8 @@ void stfl_form_free(struct stfl_form *f)
 {
 	if (f->root)
 		stfl_widget_free(f->root);
+	if (f->event)
+		free(f->event);
 	free(f);
 }
 
