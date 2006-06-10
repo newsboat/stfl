@@ -19,46 +19,78 @@
  *  example.spl: A little STFL SPL example
  */
 
+load "sql";
 load "stfl";
 
-var fields = [
-	name: "Name",
-	email: "E-Mail",
-	web: "Web-Address",
-	desc: "Description"
-];
+var db = sql_connect("sqlite", "example.db");
 
-var f = stfl_create(<:>
-	: vbox[root]
-	:   @input.focus:bg=blue,fg=white,attr=bold
-	:   @input.style:bg=blue,fg=black
-	<spl:foreach var="i" list="fields">
-	:   hbox
-	:     .expand:0 .height:2
-	:     label
-	:       .expand:0 .width:15
-	:       text:'${fields[i]}:'
-	:     input[${i}]
-	:       text[${i}_value]:''
-	</spl:foreach>
-</>);
+function search()
+{
+	var f = stfl_create(<:>
+		: table
+		:   @input.style:attr="underline"
+		:   label
+		:     .expand:0
+		:     .border:lt
+		:     text:"Name:"
+		:   input[in_name]
+		:     .expand:h
+		:     .border:rt
+		:     .colspan:2
+		:     text[in_name_val]:""
+		:   tablebr
+		:   label
+		:     .expand:0
+		:     .border:lb
+		:     text:"E-Mail:"
+		:   input[in_email]
+		:     .expand:h
+		:     .border:b
+		:     text[in_email_val]:""
+		:   label
+		:     .expand:0
+		:     .border:lrtb
+		:     text:"Press ENTER to search"
+		:   tablebr
+		:   list[result]
+		:     .tie:lrt
+		:     .colspan:3
+		:     .border:lrtb
+	</>);
 
-stfl_set(f, "name_value", "Clifford Wolf");
-stfl_set(f, "email_value", "clifford@clifford.at");
-stfl_set(f, "web_value", "http://www.clifford.at/");
-stfl_set(f, "desc_value", "Author of STFL, SPL and many other things.");
+	while (1)
+	{
+		switch
+		{
+			var event = stfl_run(f, 0);
 
-while (1) {
-	var rc = stfl_run(f);
-	if (rc ~== "F1") stfl_set_focus(f, "name");
-	if (rc ~== "F2") stfl_set_focus(f, "email");
-	if (rc ~== "F3") stfl_set_focus(f, "web");
-	if (rc ~== "F4") stfl_set_focus(f, "desc");
-	if (rc ~== "ESC") break;
+		case event ~== "ENTER" and stfl_get_focus(f) =~ /^in_/:
+			var in_name = stfl_get(f, "in_name_val");
+			var in_email = stfl_get(f, "in_email_val");
+			var tuples = sql(db, <:>
+				: SELECT * FROM people WHERE 1
+				<spl:if code="in_name ~!= ''">
+				:	AND name LIKE ${sql::"%$in_name%"}
+				</spl:if>
+				<spl:if code="in_email ~!= ''">
+				:	AND email LIKE ${sql::"%$in_email%"}
+				</spl:if>
+				: LIMIT 50
+			</>);
+			stfl_import(f, "result", "replace_inner", <:>
+				: list
+				<spl:foreach var="[]t" list="tuples">
+				:   listitem
+				:       text:${stfl::t['name']}"  <"${stfl::t['email']}">"
+				</spl:foreach>
+			</>);
+			
+		case event ~== "ESC":
+			stfl_return();
+			return;
+		}
+	}
 }
 
-stfl_return();
-
-foreach i (fields)
-	write("$i: ${stfl_get(f, "${i}_value")}\n");
+search();
 

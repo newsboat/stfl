@@ -19,21 +19,22 @@
  *  base.c: Core functions
  */
 
-#define STFL_PRIVATE 1
-#include "stfl.h"
+#include "stfl_internals.h"
 
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 #include <assert.h>
 
-struct stfl_widget_type *stfl_widget_type_list[] = {
+struct stfl_widget_type *stfl_widget_types[] = {
 	&stfl_widget_type_label,
 	&stfl_widget_type_input,
 	&stfl_widget_type_vbox,
 	&stfl_widget_type_hbox,
 	&stfl_widget_type_table,
 	&stfl_widget_type_tablebr,
+	&stfl_widget_type_list,
+	&stfl_widget_type_listitem,
 	0
 };
 
@@ -51,7 +52,7 @@ struct stfl_widget *stfl_widget_new(const char *type)
 		type++;
 	}
 
-	for (i=0; (t = stfl_widget_type_list[i]) != 0; i++)
+	for (i=0; (t = stfl_widget_types[i]) != 0; i++)
 		if (!strcmp(t->name, type))
 			break;
 

@@ -19,8 +19,7 @@
  *  public.c: Public STFL API
  */
 
-#define STFL_PRIVATE 1
-#include "stfl.h"
+#include "stfl_internals.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -177,10 +176,10 @@ void stfl_import(struct stfl_form *f, const char *name, const char *mode, const 
 
 	if (!strcmp(mode, "replace_inner")) {
 		while (w->first_child)
-			stfl_widget_free(w);
-		stfl_import_insert(w->first_child, n);
-		w->first_child = w->last_child = 0;
-		stfl_widget_free(w);
+			stfl_widget_free(w->first_child);
+		stfl_import_insert(w, n->first_child);
+		n->first_child = n->last_child = 0;
+		stfl_widget_free(n);
 		goto finish;
 	}
 
@@ -190,9 +189,9 @@ void stfl_import(struct stfl_form *f, const char *name, const char *mode, const 
 	}
 
 	if (!strcmp(mode, "insert_inner")) {
-		stfl_import_insert(w->first_child, n);
-		w->first_child = w->last_child = 0;
-		stfl_widget_free(w);
+		stfl_import_insert(w, n->first_child);
+		n->first_child = n->last_child = 0;
+		stfl_widget_free(n);
 		goto finish;
 	}
 
@@ -202,9 +201,9 @@ void stfl_import(struct stfl_form *f, const char *name, const char *mode, const 
 	}
 
 	if (!strcmp(mode, "append_inner")) {
-		stfl_import_append(w->first_child, n);
-		w->first_child = w->last_child = 0;
-		stfl_widget_free(w);
+		stfl_import_append(w, n->first_child);
+		n->first_child = n->last_child = 0;
+		stfl_widget_free(n);
 		goto finish;
 	}
 
@@ -214,9 +213,9 @@ void stfl_import(struct stfl_form *f, const char *name, const char *mode, const 
 	}
 
 	if (!strcmp(mode, "before_inner")) {
-		stfl_import_before(w->first_child, n);
-		w->first_child = w->last_child = 0;
-		stfl_widget_free(w);
+		stfl_import_before(w, n->first_child);
+		n->first_child = n->last_child = 0;
+		stfl_widget_free(n);
 		goto finish;
 	}
 
@@ -226,9 +225,9 @@ void stfl_import(struct stfl_form *f, const char *name, const char *mode, const 
 	}
 
 	if (!strcmp(mode, "after_inner")) {
-		stfl_import_after(w->first_child, n);
-		w->first_child = w->last_child = 0;
-		stfl_widget_free(w);
+		stfl_import_after(w, n->first_child);
+		n->first_child = n->last_child = 0;
+		stfl_widget_free(n);
 		goto finish;
 	}
 

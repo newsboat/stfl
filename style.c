@@ -19,8 +19,7 @@
  *  style.c: Helper functions for text colors and attributes
  */
 
-#define STFL_PRIVATE 1
-#include "stfl.h"
+#include "stfl_internals.h"
 
 #include <string.h>
 #include <stdlib.h>

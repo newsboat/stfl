@@ -17,7 +17,7 @@
 #  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
 
-prefix = /usr/local
+include Makefile.cfg
 
 CFLAGS += -I. -Wall -O0 -ggdb
 LDLIBS += -lcurses
@@ -29,16 +29,15 @@ example: LDLIBS += -lstfl
 example: libstfl.a
 
 libstfl.a: public.o base.o parser.o dump.o style.o \
-           wt_label.o wt_input.o wt_box.o wt_table.o
+           wt_label.o wt_input.o wt_box.o wt_table.o wt_list.o
 	rm -f $@
 	ar qc $@ $^
 	ranlib $@
 
 clean:
-	rm -f libstfl.a example
-	rm -f core core.* *.o
-	rm -f Makefile.deps
-	rm -f spl/mod_stfl.so
+	rm -f libstfl.a example core core.* *.o Makefile.deps
+	rm -f spl/mod_stfl.so spl/example.db
+	rm -f perl/stfl.i perl/stfl_wrap.[co] perl/stfl.so perl/stfl.pm
 
 Makefile.deps: *.c *.h
 	$(CC) -MM *.c > Makefile.deps
@@ -49,27 +48,13 @@ install: all
 	install -m 644 libstfl.a $(prefix)/lib/
 	install -m 644 stfl.h $(prefix)/include/
 
-
-### Build and install STFL SPL module if SPL is installed ###
-
-ifneq ($(shell spl-config 2>/dev/null),)
-
-spl/mod_stfl.so: libstfl.a stfl.h spl/mod_stfl.c
-	gcc -shared $(CFLAGS) $(LDFLAGS) spl/mod_stfl.c \
-			-L. -lstfl $(LDLIBS) -o spl/mod_stfl.so
-
-all: spl/mod_stfl.so
-
-install_spl: spl/mod_stfl.so
-	mkdir -p $(prefix)/lib/spl_modules
-	install spl/mod_stfl.so $(prefix)/lib/spl_modules/
-
-install: install_spl
-
+ifeq ($(FOUND_SPL),1)
+include spl/Makefile.snippet
 endif
 
-
-### The glory final hacks ###
+ifeq ($(FOUND_SWIG)$(FOUND_PERL),11)
+include perl/Makefile.snippet
+endif
 
 .PHONY: all clean install install_spl
 

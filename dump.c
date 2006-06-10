@@ -21,8 +21,7 @@
 
 #define _GNU_SOURCE
 
-#define STFL_PRIVATE 1
-#include "stfl.h"
+#include "stfl_internals.h"
 
 #include <stdio.h>
 #include <stdlib.h>

@@ -19,8 +19,7 @@
  *  wt_input.c: Widget type 'input'
  */
 
-#define STFL_PRIVATE 1
-#include "stfl.h"
+#include "stfl_internals.h"
 
 #include <string.h>
 #include <stdlib.h>

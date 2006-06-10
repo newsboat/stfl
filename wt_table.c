@@ -19,8 +19,7 @@
  *  wt_table.c: Widget type 'table'
  */
 
-#define STFL_PRIVATE 1
-#include "stfl.h"
+#include "stfl_internals.h"
 
 #include <string.h>
 #include <stdlib.h>
@@ -172,7 +171,7 @@ static void wt_table_prepare(struct stfl_widget *w, struct stfl_form *f)
 	d->rowd = calloc(d->rows, sizeof(struct table_rowcol_data));
 	d->cold = calloc(d->cols, sizeof(struct table_rowcol_data));
 
-	for (i=1; i<max_colspan; i++)
+	for (i=1; i<=max_colspan; i++)
 	for (row_counter=0; row_counter < d->rows; row_counter++)
 	for (col_counter=0; col_counter < d->cols; col_counter++)
 	{
@@ -195,7 +194,7 @@ static void wt_table_prepare(struct stfl_widget *w, struct stfl_form *f)
 			d->cold[col_counter+j].expand = 1;
 	}
 
-	for (i=1; i<max_rowspan; i++)
+	for (i=1; i<=max_rowspan; i++)
 	for (row_counter=0; row_counter < d->rows; row_counter++)
 	for (col_counter=0; col_counter < d->cols; col_counter++)
 	{

@@ -16,33 +16,44 @@
  *  along with this program; if not, write to the Free Software
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- *  wt_label.c: Widget type 'label'
+ *  genexampledb.spl: Generate example database for SPL/STFL example
  */
 
-#include "stfl_internals.h"
+load "file";
+load "sql";
 
-#include <string.h>
+var db = sql_connect("sqlite", "example.db");
+var current;
 
-static void wt_label_prepare(struct stfl_widget *w, struct stfl_form *f)
+sql(db, "CREATE TABLE people (name, email, web, description, addr)");
+
+function addtuple()
 {
-	w->min_w = strlen(stfl_widget_getkv_str(w, "text", ""));
-	w->min_h = 1;
+	if (elementsof current == 0)
+		return;
+
+	sql(db, <:>
+		: INSERT INTO people
+		:	(name, email, web, description, addr)
+		: VALUES
+		:	(
+		:		${sql::current['N']},
+		:		${sql::current['E']},
+		:		${sql::current['W']},
+		:		${sql::current['D']},
+		:		${sql::current['S']}
+		:	)
+	</>);
 }
 
-static void wt_label_draw(struct stfl_widget *w, struct stfl_form *f, WINDOW *win)
+foreach[] line (file_read("/usr/src/linux/CREDITS", "ascii") =~ /\n/Sg)
 {
-	stfl_widget_style(w, f, win);
-	mvwaddnstr(win, w->y, w->x, stfl_widget_getkv_str(w, "text", ""), w->w);
+	if (line =~ /^N:/) {
+		addtuple();
+		current = undef;
+	}
+	if (line =~ /^(.):\s+(.*)/)
+		current[$1] ~= $2;
 }
-
-struct stfl_widget_type stfl_widget_type_label = {
-	"label",
-	0, // f_init
-	0, // f_done
-	0, // f_enter 
-	0, // f_leave
-	wt_label_prepare,
-	wt_label_draw,
-	0  // f_process
-};
+addtuple();
 

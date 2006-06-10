@@ -19,8 +19,7 @@
  *  wt_box.c: Widget types 'hbox' and 'vbox'
  */
 
-#define STFL_PRIVATE 1
-#include "stfl.h"
+#include "stfl_internals.h"
 
 #include <stdlib.h>
 #include <string.h>

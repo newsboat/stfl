@@ -19,8 +19,7 @@
  *  parser.c: STFL Form description file parser
  */
 
-#define STFL_PRIVATE 1
-#include "stfl.h"
+#include "stfl_internals.h"
 
 #include <stdio.h>
 #include <string.h>
