@@ -221,31 +221,126 @@ static void wt_table_prepare(struct stfl_widget *w, struct stfl_form *f)
 	for (col_counter=0; col_counter < d->cols; col_counter++)
 	{
 		struct table_cell_data *m = d->map[col_counter][row_counter];
-
-		int min_w = max(m->w->min_w, stfl_widget_getkv_int(m->w, ".width", 1));
-		min_w = min_w / m->colspan + (m->colspan_nr < min_w % m->colspan ? 1 : 0);
-
-		int min_h = max(m->w->min_h, stfl_widget_getkv_int(m->w, ".height", 1));
-		min_h = min_h / m->rowspan + (m->rowspan_nr < min_h % m->rowspan ? 1 : 0);
-
-		if (col_counter == 0 && m->border_l) min_w += 3;
-		if (row_counter == 0 && m->border_t) min_h += 1;
-
-		if (m->border_r) min_w += 3;
-		if (m->border_b) min_h += 1;
-
-		d->cold[col_counter].min = max(d->cold[col_counter].min, min_w);
-		d->rowd[row_counter].min = max(d->rowd[row_counter].min, min_h);
-	}
-
-	for (row_counter=0; row_counter < d->rows; row_counter++)
-	for (col_counter=0; col_counter < d->cols; col_counter++)
-	{
-		struct table_cell_data *m = d->map[col_counter][row_counter];
 		m->mastercell->mc_border_l = max(m->mastercell->mc_border_l, m->border_l);
 		m->mastercell->mc_border_r = max(m->mastercell->mc_border_r, m->border_r);
 		m->mastercell->mc_border_t = max(m->mastercell->mc_border_t, m->border_t);
 		m->mastercell->mc_border_b = max(m->mastercell->mc_border_b, m->border_b);
+	}
+
+	for (i=1; i<=max_colspan; i++)
+	for (row_counter=0; row_counter < d->rows; row_counter++)
+	for (col_counter=0; col_counter < d->cols; col_counter++)
+	{
+		struct table_cell_data *m = d->map[col_counter][row_counter];
+
+		if (m == 0 || m->spanpadding || m->colspan > i)
+			continue;
+
+		int min_w = max(m->w->min_w, stfl_widget_getkv_int(m->w, ".width", 1));
+
+		if (col_counter == 0 && m->mc_border_l)
+			min_w += 3;
+
+		if (m->mc_border_r)
+			min_w += 3;
+
+		int total = min_w;
+
+		for (j=0; j<m->colspan; j++)
+			total -= d->cold[col_counter+j].min;
+
+		if (total <= 0)
+			continue;
+
+		int expandables = 0;
+
+		for (j=0; j<m->colspan; j++)
+			if (d->cold[col_counter+j].expand)
+				expandables++;
+
+		if (expandables > 0)
+		{
+			int per = total / expandables;
+			int extra_per = total % expandables;
+			for (j=0; j<m->colspan; j++)
+				if (d->cold[col_counter+j].expand) {
+					d->cold[col_counter+j].min += per;
+					if (extra_per) {
+						d->cold[col_counter+j].min++;
+						extra_per--;
+					}
+				}
+		}
+		else
+		{
+			int per = total / m->colspan;
+			int extra_per = total % m->colspan;
+			for (j=0; j<m->colspan; j++) {
+				d->cold[col_counter+j].min += per;
+				if (extra_per) {
+					d->cold[col_counter+j].min++;
+					extra_per--;
+				}
+			}
+		}
+	}
+
+	for (i=1; i<=max_rowspan; i++)
+	for (row_counter=0; row_counter < d->rows; row_counter++)
+	for (col_counter=0; col_counter < d->cols; col_counter++)
+	{
+		struct table_cell_data *m = d->map[col_counter][row_counter];
+
+		if (m == 0 || m->spanpadding || m->rowspan > i)
+			continue;
+
+		int min_h = max(m->w->min_h, stfl_widget_getkv_int(m->w, ".height", 1));
+
+		if (row_counter == 0 && m->mc_border_t)
+			min_h++;
+
+		if (m->mc_border_b)
+			min_h++;
+
+		int total = min_h;
+
+		for (j=0; j<m->rowspan; j++)
+			total -= d->rowd[row_counter+j].min;
+
+		if (total <= 0)
+			continue;
+
+		int expandables = 0;
+
+		for (j=0; j<m->rowspan; j++)
+			if (d->rowd[row_counter+j].expand)
+				expandables++;
+
+		if (expandables > 0)
+		{
+			int per = total / expandables;
+			int extra_per = total % expandables;
+			for (j=0; j<m->rowspan; j++)
+				if (d->rowd[row_counter+j].expand) {
+					d->rowd[row_counter+j].min += per;
+					if (extra_per) {
+						d->rowd[row_counter+j].min++;
+						extra_per--;
+					}
+				}
+		}
+		else
+		{
+			int per = total / m->rowspan;
+			int extra_per = total % m->rowspan;
+			for (j=0; j<m->rowspan; j++) {
+				d->rowd[row_counter+j].min += per;
+				if (extra_per) {
+					d->rowd[row_counter+j].min++;
+					extra_per--;
+				}
+			}
+		}
 	}
 
 	w->min_h = w->min_w = 0;

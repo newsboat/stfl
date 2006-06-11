@@ -184,6 +184,12 @@ struct stfl_widget *stfl_parser(const char *text)
 				text++;
 			}
 
+			if (*text == '*') {
+				while (*text && *text != '\r' && *text != '\n')
+					text++;
+				continue;
+			}
+
 			if (*text == '{') {
 				bracket_indenting = indenting;
 				continue;

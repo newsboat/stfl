@@ -161,10 +161,10 @@ void stfl_widget_style(struct stfl_widget *w, struct stfl_form *f, WINDOW *win)
 	const char *style = "";
 
 	if (f->current_focus_id == w->id)
-		style = stfl_widget_getkv_str(w, "@focus", "");
+		style = stfl_widget_getkv_str(w, "style_focus", "");
 
 	if (*style == 0)
-		style = stfl_widget_getkv_str(w, "@style", "");
+		style = stfl_widget_getkv_str(w, "style_normal", "");
 
 	stfl_style(win, style);
 }

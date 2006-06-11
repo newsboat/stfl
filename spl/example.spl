@@ -20,6 +20,7 @@
  */
 
 load "sql";
+load "sql_utils";
 load "stfl";
 
 var db = sql_connect("sqlite", "example.db");
@@ -28,10 +29,12 @@ function search()
 {
 	var f = stfl_create(<:>
 		: table
-		:   @input.style:attr="underline"
+		:   @input#style_normal:bg=blue,fg=black
+		:   @input#style_focus:bg=blue,fg=white,attr=bold
 		:   label
 		:     .expand:0
 		:     .border:lt
+		:     .spacer:r
 		:     text:"Name:"
 		:   input[in_name]
 		:     .expand:h
@@ -42,6 +45,7 @@ function search()
 		:   label
 		:     .expand:0
 		:     .border:lb
+		:     .spacer:r
 		:     text:"E-Mail:"
 		:   input[in_email]
 		:     .expand:h
@@ -53,10 +57,36 @@ function search()
 		:     text:"Press ENTER to search"
 		:   tablebr
 		:   list[result]
+		:     pos_name[result_rowid]:
+		:     style_focus:bg=blue,fg=white,attr=bold
+		:     style_selected:bg=blue,fg=black
 		:     .tie:lrt
 		:     .colspan:3
 		:     .border:lrtb
 	</>);
+
+	function perform_search()
+	{
+		var in_name = stfl_get(f, "in_name_val");
+		var in_email = stfl_get(f, "in_email_val");
+		var tuples = sql(db, <:>
+			: SELECT rowid, * FROM people WHERE 1
+			<spl:if code="in_name ~!= ''">
+			:	AND name LIKE ${sql::"%$in_name%"}
+			</spl:if>
+			<spl:if code="in_email ~!= ''">
+			:	AND email LIKE ${sql::"%$in_email%"}
+			</spl:if>
+			: LIMIT 50
+		</>);
+		stfl_import(f, "result", "replace_inner", <:>
+			: list
+			<spl:foreach var="[]t" list="tuples">
+			:   listitem[rowid_${t.rowid}]
+			:       text:${stfl::t['name']}"  <"${stfl::t['email']}">"
+			</spl:foreach>
+		</>);
+	}
 
 	while (1)
 	{
@@ -65,28 +95,72 @@ function search()
 			var event = stfl_run(f, 0);
 
 		case event ~== "ENTER" and stfl_get_focus(f) =~ /^in_/:
-			var in_name = stfl_get(f, "in_name_val");
-			var in_email = stfl_get(f, "in_email_val");
-			var tuples = sql(db, <:>
-				: SELECT * FROM people WHERE 1
-				<spl:if code="in_name ~!= ''">
-				:	AND name LIKE ${sql::"%$in_name%"}
-				</spl:if>
-				<spl:if code="in_email ~!= ''">
-				:	AND email LIKE ${sql::"%$in_email%"}
-				</spl:if>
-				: LIMIT 50
-			</>);
-			stfl_import(f, "result", "replace_inner", <:>
-				: list
-				<spl:foreach var="[]t" list="tuples">
-				:   listitem
-				:       text:${stfl::t['name']}"  <"${stfl::t['email']}">"
-				</spl:foreach>
-			</>);
+			perform_search();
 			
+		case event ~== "ENTER" and stfl_get_focus(f) ~== "result":
+			if (stfl_get(f, "result_rowid") =~ /rowid_(\d+)/)
+				edit($1);
+			perform_search();
+
 		case event ~== "ESC":
 			stfl_return();
+			debug stfl_get(f, "result_rowid");
+			return;
+		}
+	}
+}
+
+function edit(rowid)
+{
+	var tuple = sql_tuple(db, "SELECT * FROM people WHERE rowid = $rowid");
+	var fields = [
+		name: "Name",
+		email: "E-Mail",
+		web: "WWW Address",
+		description: "Description",
+		addr: "Address"
+	];
+	var f = stfl_create(<:>
+		: table
+		:   @input#style_normal:bg=blue,fg=black
+		:   @input#style_focus:bg=blue,fg=white,attr=bold
+		:   @input#.expand:h
+		:   @input#.border:rtb
+		:   @label#.expand:0
+		:   @label#.border:ltb
+		:   @label#.spacer:r
+		<spl:foreach var="i" list="fields">
+		:   label
+		:     text:${stfl::fields[i]}:
+		:   input[in_$i]
+		:     text[in_${i}_val]:${stfl::tuple[i]}
+		:   tablebr
+		</spl:foreach>
+		:   vbox
+		:     .colspan:2
+		:     .border:lrtb
+		:     label .tie:r
+		:       text:"Press ENTER to save and ESC to cancel"
+	</>);
+
+	while (1)
+	{
+		switch
+		{
+			var event = stfl_run(f, 0);
+
+		case event ~== "ENTER":
+			sql(db, <:>
+				: UPDATE people SET
+				<spl:foreach var="i" list="fields">
+				:	$i = ${sql::stfl_get(f, "in_${i}_val")}
+				:	${ $] ? "" : ","}
+				</spl:foreach>
+				: WHERE rowid = $rowid
+			</>);
+			return;
+			
+		case event ~== "ESC":
 			return;
 		}
 	}

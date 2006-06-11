@@ -1,9 +1,25 @@
+*
+*  STFL - The Structured Terminal Forms Language/Library
+*  Copyright (C) 2006  Clifford Wolf <clifford@clifford.at>
+*
+*  This program is free software; you can redistribute it and/or modify
+*  it under the terms of the GNU General Public License as published by
+*  the Free Software Foundation; either version 2 of the License, or
+*  (at your option) any later version.
+*
+*  This program is distributed in the hope that it will be useful,
+*  but WITHOUT ANY WARRANTY; without even the implied warranty of
+*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+*  GNU General Public License for more details.
+*
+*  You should have received a copy of the GNU General Public License
+*  along with this program; if not, write to the Free Software
+*  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+*
+*  example.stfl: STFL Code for example.c
+*
 
 vbox
-
-  @input.focus:bg=blue,fg=white,attr=bold
-  @input.style:bg=blue,fg=black
-  @L#style:fg=red
 
   label
     .expand:0
@@ -11,58 +27,68 @@ vbox
 
   table
     .expand:0
+
+    @input#style_focus:bg=blue,fg=white,attr=bold
+    @input#style_normal:bg=blue,fg=black
+    @input#.border:rtb
+
+    @L#style:fg=red
+    @L#.expand:0
+    @L#.border:ltb
+    @L#.spacer:r
+
     label#L
-      .expand:0
-      .border:ltb
-      .spacer:r
       text:'Field A:'
     input
       .colspan:3
-      .border:rtb
       text[value_a]:'foo'
     vbox
       .rowspan:2
       .expand:0
       .border:lrtb
-      @style:bg=red,fg=black
+      style_normal:bg=red,fg=black
       label text:'this'
       label text:'is a'
       label text:'test'
     tablebr
     label#L
-      .expand:0
-      .border:ltb
-      .spacer:r
       text:'Field B:'
     input
-      .border:rtb
       text[value_b]:'bar'
     label#L
-      .expand:0
-      .border:ltb
-      .spacer:r
       text:'Field C:'
     input
-      .border:rtb
       text[value_c]:'Hello'"'"'World!'
 
   hbox
     vbox
       vbox
-        @style:bg=red
-        label @style:bg=white,fg=black .tie:tc
+        style_normal:bg=red
+        @label#style_normal:bg=white,fg=black
+        label .tie:tc
           text:"A rather long test label"
-        label @style:bg=white,fg=black .tie:l
+        label .tie:l
           text:"Short (left)"
-        label @style:bg=white,fg=black .tie:rb
+        label .tie:rb
           text:"Short (right)"
-      {vbox tie:lrb @style:bg=blue {label @style:bg=white,fg=black .tie:c text:"A rather long test label"} {label @style:bg=white,fg=black .tie:l text:"Short (left)"} {label @style:bg=white,fg=black .tie:r text:"Short (right)"}}
-    vbox tie:r
-      @style:bg=green
-      label @style:bg=white,fg=black
+      vbox
+        tie:lrb
+        style_normal:bg=blue
+        @label#style_normal:bg=white,fg=black
+        label .tie:c
+          text:"A rather long test label"
+        label .tie:l
+          text:"Short (left)"
+        label .tie:r
+          text:"Short (right)"
+    vbox
+      tie:r
+      style_normal:bg=green
+      @label#style_normal:bg=white,fg=black
+      label
         text:"A rather long test label"
-      label @style:bg=white,fg=black .tie:l
+      label .tie:l
         text:"Short (left)"
-      label @style:bg=white,fg=black .tie:r
+      label .tie:r
         text:"Short (right)"
 

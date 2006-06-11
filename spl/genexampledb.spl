@@ -52,8 +52,11 @@ foreach[] line (file_read("/usr/src/linux/CREDITS", "ascii") =~ /\n/Sg)
 		addtuple();
 		current = undef;
 	}
-	if (line =~ /^(.):\s+(.*)/)
+	if (line =~ /^(.):\s+(.*)/) {
+		if (current[$1] ~!= "")
+			current[$1] ~= ", ";
 		current[$1] ~= $2;
+	}
 }
 addtuple();
 

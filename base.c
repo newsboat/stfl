@@ -178,30 +178,35 @@ struct stfl_kv *stfl_widget_getkv(struct stfl_widget *w, const char *key)
 	struct stfl_kv *kv = stfl_widget_getkv_worker(w, key);
 	if (kv) return kv;
 
-	if (*key == '@')
+	int key1_len = strlen(key) + 2;
+	char key1[key1_len];
+
+	int key2_len = key1_len + strlen(w->type->name) + 1;
+	char key2[key2_len];
+
+	int key3_len = w->cls ? key1_len + strlen(w->cls) + 1 : 0;
+	char key3[key3_len];
+
+	snprintf(key1, key1_len, "@%s", key);
+	snprintf(key2, key2_len, "@%s#%s", w->type->name, key);
+
+	if (key3_len)
+		snprintf(key3, key3_len, "@%s#%s", w->cls, key);
+
+	while (w)
 	{
-		if (strchr(key, '.') == 0 && strchr(key, '#') == 0)
-		{
-			int newkey_len = strlen(w->type->name) +
-					strlen(w->cls ? w->cls : "") + strlen(key) + 2;
-			char newkey[newkey_len];
-
-			if (w->cls) {
-				snprintf(newkey, newkey_len, "@%s#%s", w->cls, key+1);
-				kv = stfl_widget_getkv(w, newkey);
-				if (kv) return kv;
-			}
-
-			snprintf(newkey, newkey_len, "@%s.%s", w->type->name, key+1);
-			kv = stfl_widget_getkv(w, newkey);
+		if (key3_len) {
+			kv = stfl_widget_getkv_worker(w, key3);
 			if (kv) return kv;
 		}
 
-		while (w->parent) {
-			w = w->parent;
-			kv = stfl_widget_getkv(w, key);
-			if (kv) return kv;
-		}
+		kv = stfl_widget_getkv_worker(w, key2);
+		if (kv) return kv;
+
+		kv = stfl_widget_getkv_worker(w, key1);
+		if (kv) return kv;
+
+		w = w->parent;
 	}
 
 	return 0;
@@ -485,7 +490,8 @@ int stfl_form_run(struct stfl_form *f, int timeout)
 	refresh();
 
 	wtimeout(stdscr, timeout <= 0 ? -1 : timeout);
-	int ch = mvwgetch(stdscr, f->cursor_y, f->cursor_x);
+	wmove(stdscr, f->cursor_y, f->cursor_x);
+	int ch = wgetch(stdscr);
 	struct stfl_widget *w = fw;
 
 	while (w) {

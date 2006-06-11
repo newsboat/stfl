@@ -86,7 +86,7 @@ brackets so the application can read and write the variable value:
 Usually variables configure the widget they are directly associated with or
 store status information from that widget. But sometimes variables contain
 information about the relationship of the widget they are directly associated
-with and its parent widget. This variables are alsways prefixed with a dot.
+with and its parent widget. This variables are always start with a dot.
 
 Example given the .border variable can be used to configure the borders of
 table cells:
@@ -99,12 +99,12 @@ table cells:
 	    .border:lrtb
 	    text:"World!"
 
-Another special variable prefix is the at-sign. Variables with this prefix
-are propagated down in the widget tree. That way one does not need to
-reconfigure properties like text colors for each widget:
+Sometimes one wants to set a variable not only for the current widget but also
+for all its child widgets. This can be done by prefixing the variable name
+with he at-sign. Example given:
 
 	vbox
-	  @style:fg=white,bg=blue
+	  @style_normal:fg=white,bg=blue
 	  label
 	    text:"White text.."
 	  label
@@ -113,8 +113,8 @@ reconfigure properties like text colors for each widget:
 This kind of variables can also be defined for only one widget type:
 
 	vbox
-	  @style:fg=white,bg=blue
-	  @input.style:fg=black,bg=red
+	  @style_normal:fg=white,bg=blue
+	  @input#style_normal:fg=black,bg=red
 	  label
 	    text:"White text on blue background."
 	  input
@@ -124,8 +124,8 @@ Alternatively it is possible to postfix the widget types with '#classname'
 and prefix the variables with 'classname#':
 
 	vbox
-	  @style:fg=white,bg=blue
-	  @foobar#style:fg=black,bg=red
+	  @style_normal:fg=white,bg=blue
+	  @foobar#style_normal:fg=black,bg=red
 	  label
 	    text:"White text on blue background."
 	  input#foobar
@@ -162,9 +162,9 @@ following two code fragmentsa are identical:
 	{vbox{hbox{label .expand:0 text:"Foo: "}{input[foo] text:"Hello"}
 	{hbox{label .expand:0 text:"Bar: "}{input[bar] text:"World!"}}}
 
-Newline characters are not allowed inside of a STFL code fragment in curly
+Newline characters are not allowed inside of an STFL code fragment in curly
 brackets (the example above is just broken up in two line to improve the
-readability). It is even possible to embed a STFL code fragment in curly
+readability). It is even possible to embed an STFL code fragment in curly
 brackets in a normal indented code block. Example given:
 
 	vbox
@@ -179,6 +179,11 @@ The STFL parser can also read external files. This can be done by putting the
 filename in < > brackets in the STFL file. Note that this is not a varbatim
 include but calls another parser instance recursively. So there is an extra
 indenting / curly brackets state for the external file.
+
+Comment lines in STFL code start with a '*' character. There must be no
+statement in the same line as the comment (i.e. only whitespaces are allowed
+before the '*' character). Comment are not allowed within a code fragment
+in curly brackets.
 
 
 The STFL Style Descriptions
@@ -229,7 +234,7 @@ vbox and hbox
 This widgets simply layouts its child widgets vertically or horizontally
 repectively. The following variables are supported by both widgets:
 
-	@style
+	style_normal
 		The background style.
 
 	tie
@@ -268,7 +273,7 @@ label
 
 A simple text label. The following variables are supported by this widget:
 
-	@style
+	style_normal
 		The style used for displaying the text.
 
 	text
@@ -280,11 +285,11 @@ input
 A simple input widget for one line of text input. The following variables are
 supported by this widget:
 
-	@style
+	style_normal
 		The style of this widget when it does not have the
 		focus.
 
-	@focus
+	style_focus
 		The style of this widget when it does have the focus.
 
 	text
@@ -304,7 +309,7 @@ The most important container widget. The special widget 'tablebr' is used to
 mark the begin of a new table row. The following variables are supported by
 this widget:
 
-	@style
+	style_normal
 		The style for the table bordes.
 
 	.expand
@@ -556,8 +561,9 @@ The default mode is "interactive".
 TODOs
 -----
 
-- Widgets: add "list" and "checkbox"
+- More widgets and more widget variables
 - Improve error handling and reporting
-- Bigger SPL example application
 - Bindings for more scripting languages
+- Bigger SPL example applications
+- Unicode (UTF-8) support
 
