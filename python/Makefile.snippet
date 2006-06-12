@@ -18,13 +18,15 @@
 #
 
 
-all: perl/stfl.so perl/stfl.pm
+all: python/_stfl.so 
 
-perl/stfl.i: swig/stfl.i
-	cp swig/stfl.i perl/stfl.i
+install: install_python
 
-perl/stfl.so perl/stfl.pm: libstfl.a stfl.h perl/stfl.i
-	cd perl && swig -perl5 stfl.i
-	cd perl && gcc -fpic -c stfl_wrap.c -I$(PWD) -Dbool=char `perl -MExtUtils::Embed -e ccopts`
-	cd perl && gcc -shared stfl_wrap.o -L$(PWD) -lstfl -lncurses -o stfl.so
+python/_stfl.so: libstfl.a stfl.h swig/stfl.i
+	cd python && cp ../swig/stfl.i stfl.i && swig -python stfl.i
+	gcc -shared -fPIC python/stfl_wrap.c -I/usr/include/python2.4 \
+		-L.. -lstfl -lncurses -o python/_stfl.so
+
+install_python: python/_stfl.so
+	@echo "** No install target for python yet **"
 

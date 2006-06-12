@@ -46,7 +46,6 @@ vbox
       .rowspan:2
       .expand:0
       .border:lrtb
-      @style_normal:bg=red,fg=black
       label text:'this'
       label text:'is a'
       label text:'test'

@@ -83,15 +83,6 @@ static struct spl_node *handler_stfl_create(struct spl_task *task, void *data)
 }
 
 /**
- * No-op since SPL has a garbage collector
- */
-// builtin stfl_free(form)
-static struct spl_node *handler_stfl_free(struct spl_task *task, void *data)
-{
-	return 0;
-}
-
-/**
  * Display the form and process one input character
  */
 // builtin stfl_run(form, timeout)
@@ -161,9 +152,8 @@ static struct spl_node *handler_stfl_set_focus(struct spl_task *task, void *data
 // builtin stfl_quote(text)
 static struct spl_node *handler_stfl_quote(struct spl_task *task, void *data)
 {
-	char *text = stfl_quote(spl_clib_get_string(task));
+	const char *text = stfl_quote(spl_clib_get_string(task));
 	struct spl_node *n = spl_new_nullable_ascii(text);
-	free(text);
 	return n;
 }
 
@@ -177,9 +167,8 @@ static struct spl_node *handler_stfl_dump(struct spl_task *task, void *data)
 	char *name = spl_clib_get_string(task);
 	char *prefix = spl_clib_get_string(task);
 	int focus = spl_clib_get_int(task);
-	char *text = stfl_dump(f, name, prefix, focus);
+	const char *text = stfl_dump(f, name, prefix, focus);
 	struct spl_node *n = spl_new_nullable_ascii(text);
-	free(text);
 	return n;
 }
 
@@ -234,7 +223,6 @@ void SPL_ABI(spl_mod_stfl_init)(struct spl_vm *vm, struct spl_module *mod, int r
 	spl_hnode_reg(vm, "stfl_form", handler_stfl_form_node, 0);
 
 	spl_clib_reg(vm, "stfl_create", handler_stfl_create, 0);
-	spl_clib_reg(vm, "stfl_free", handler_stfl_free, 0);
 
 	spl_clib_reg(vm, "stfl_run", handler_stfl_run, 0);
 	spl_clib_reg(vm, "stfl_return", handler_stfl_return, 0);

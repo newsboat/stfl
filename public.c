@@ -62,16 +62,24 @@ void stfl_set_focus(struct stfl_form *f, const char *name) {
 	stfl_switch_focus(0, fw, f);
 }
 
-char *stfl_quote(const char *text)
+const char *stfl_quote(const char *text)
 {
-	return stfl_quote_backend(text ? text : "");
+	static char *last_ret = 0;
+	if (last_ret)
+		free(last_ret);
+	last_ret = stfl_quote_backend(text ? text : "");
+	return last_ret;
 }
 
-char *stfl_dump(struct stfl_form *f, const char *name, const char *prefix, int focus)
+const char *stfl_dump(struct stfl_form *f, const char *name, const char *prefix, int focus)
 {
+	static char *last_ret = 0;
 	struct stfl_widget *w;
 	w = name && *name ? stfl_widget_by_name(f->root, name) : f->root;
-	return stfl_widget_dump(w, prefix ? prefix : "", focus ? f->current_focus_id : 0);
+	if (last_ret)
+		free(last_ret);
+	last_ret = stfl_widget_dump(w, prefix ? prefix : "", focus ? f->current_focus_id : 0);
+	return last_ret;
 }
 
 static void stfl_import_before(struct stfl_widget *w, struct stfl_widget *n)

@@ -17,29 +17,16 @@
 #  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
 
-prefix = /usr/local
 
-ifneq ($(shell spl-config --cflags 2>/dev/null),)
-FOUND_SPL = 1
-else
-FOUND_SPL = 0
-endif
+all: perl5/build_ok
 
-ifneq ($(shell swig -help 2>/dev/null),)
-FOUND_SWIG = 1
-else
-FOUND_SWIG = 0
-endif
+install: install_perl5
 
-ifneq ($(shell perl -le 'print 1;' 2>/dev/null),)
-FOUND_PERL5 = 1
-else
-FOUND_PERL5 = 0
-endif
+perl5/build_ok: libstfl.a stfl.h swig/stfl.i
+	cp swig/stfl.i perl5/stfl.i
+	cd perl5 && swig -perl5 stfl.i && perl Makefile.PL
+	make -C perl5 && touch perl5/build_ok
 
-ifneq ($(shell python -c 'print 1' 2>/dev/null),)
-FOUND_PYTHON = 1
-else
-FOUND_PYTHON = 0
-endif
+install_perl5: perl5/build_ok
+	make -C perl5 install
 

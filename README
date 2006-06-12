@@ -367,11 +367,9 @@ C API Notes
 
 All functions listed here are also available thru the STFL C-API.
 
-With the exception stfl_dump() and stfl_quote() all strings returned
-by stfl functions are constant and must not be freed by the caller. When
-the caller wants to preserve for longer than until the next stfl function
-call the caller must copy the strings. The return value of stfl_dump() and
-stfl_quote() must be freed by the caller.
+All strings returned by stfl functions are constant and must not be freed or
+modified by the caller. When the caller wants to preserve a string for longer
+than until the next stfl function call the caller must copy the strings.
 
 All strings passed to STFL functions are considered read-only by STFL and
 are neither modified nor freed by STFL.
@@ -384,10 +382,10 @@ any other value = TRUE).
 SPL API Notes
 ~~~~~~~~~~~~~
 
-The stfl_free() function is a no-op in SPL because the SPL garbage collector
-does call the low-level STFL free function automatically. The stfl_return()
-function is automatically called when the STFL module is unloaded (i.e. on
-program termination).
+The stfl_free() function is not implemented in SPL because the SPL garbage
+collector does call the low-level STFL free function automatically. The
+stfl_return() function is automatically called when the STFL module is unloaded
+(i.e. on program termination).
 
 The stfl_quote() function can also be called using the name encode_stfl() so
 it can be used with the SPL encoding/quoting operator (::).
@@ -395,17 +393,17 @@ it can be used with the SPL encoding/quoting operator (::).
 Python API Notes
 ~~~~~~~~~~~~~~~~
 
-The STFL Python bindings are still under development and not available yet.
+The STFL Python bindings are still under development and not ready yet.
 
 Perl API Notes
 ~~~~~~~~~~~~~~
 
-The STFL Perl bindings are still under development and not available yet.
+The STFL Perl bindings are still under development and not ready yet.
 
 Ruby API Notes
 ~~~~~~~~~~~~~~
 
-The STFL Ruby bindings are still under development and not available yet.
+The STFL Ruby bindings are still under development and not ready yet.
 
 stfl_create(text)
 ~~~~~~~~~~~~~~~~~

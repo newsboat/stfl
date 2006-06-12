@@ -37,7 +37,10 @@ libstfl.a: public.o base.o parser.o dump.o style.o \
 clean:
 	rm -f libstfl.a example core core.* *.o Makefile.deps
 	rm -f spl/mod_stfl.so spl/example.db
-	rm -f perl/stfl.i perl/stfl_wrap.[co] perl/stfl.so perl/stfl.pm
+	cd perl5 && perl Makefile.PL && make clean && rm -f Makefile.old
+	rm -f perl5/stfl.i perl5/stfl_wrap.c perl5/stfl.pm perl5/build_ok
+	rm -f python/stfl.i python/stfl.py python/stfl.pyc python/_stfl.so 
+	rm -f python/stfl_wrap.c python/stfl_wrap.o
 
 Makefile.deps: *.c *.h
 	$(CC) -MM *.c > Makefile.deps
@@ -52,8 +55,12 @@ ifeq ($(FOUND_SPL),1)
 include spl/Makefile.snippet
 endif
 
-ifeq ($(FOUND_SWIG)$(FOUND_PERL),11)
-include perl/Makefile.snippet
+ifeq ($(FOUND_SWIG)$(FOUND_PERL5),11)
+include perl5/Makefile.snippet
+endif
+
+ifeq ($(FOUND_SWIG)$(FOUND_PYTHON),11)
+include python/Makefile.snippet
 endif
 
 .PHONY: all clean install install_spl
