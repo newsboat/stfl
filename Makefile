@@ -38,8 +38,8 @@ clean:
 	rm -f libstfl.a example core core.* *.o Makefile.deps
 	rm -f spl/mod_stfl.so spl/example.db
 	cd perl5 && perl Makefile.PL && make clean && rm -f Makefile.old
-	rm -f perl5/stfl.i perl5/stfl_wrap.c perl5/stfl.pm perl5/build_ok
-	rm -f python/stfl.i python/stfl.py python/stfl.pyc python/_stfl.so 
+	rm -f perl5/stfl_wrap.c perl5/stfl.pm perl5/build_ok
+	rm -f python/stfl.py python/stfl.pyc python/_stfl.so 
 	rm -f python/stfl_wrap.c python/stfl_wrap.o
 
 Makefile.deps: *.c *.h

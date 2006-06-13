@@ -157,12 +157,12 @@ static void wt_box_draw(struct stfl_widget *w, struct stfl_form *f, WINDOW *win)
 
 		tie = stfl_widget_getkv_str(c, ".tie", "lrtb");
 
-		if (!strchr(tie, 'l') && !strchr(tie, 'r')) c->x += (c->w-c->min_w)/2;
-		if (!strchr(tie, 'l') &&  strchr(tie, 'r')) c->x += c->w-c->min_w;
+		if (!strchr(tie, 'l') && !strchr(tie, 'r')) c->x += (c->w - c->min_w)/2;
+		if (!strchr(tie, 'l') &&  strchr(tie, 'r')) c->x += c->w - c->min_w;
 		if (!strchr(tie, 'l') || !strchr(tie, 'r')) c->w = c->min_w;
 
-		if (!strchr(tie, 't') && !strchr(tie, 'b')) c->y += (c->h-c->min_h)/2;
-		if (!strchr(tie, 't') &&  strchr(tie, 'b')) c->y += c->h-c->min_h;
+		if (!strchr(tie, 't') && !strchr(tie, 'b')) c->y += (c->h - c->min_h)/2;
+		if (!strchr(tie, 't') &&  strchr(tie, 'b')) c->y += c->h - c->min_h;
 		if (!strchr(tie, 't') || !strchr(tie, 'b')) c->h = c->min_h;
 
 		c->type->f_draw(c, f, win);

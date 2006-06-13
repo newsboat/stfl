@@ -351,6 +351,12 @@ this widget:
 	.spacer
 		Like .border, but only adds a spacer between the cells.
 
+	.tie
+		Tie this table cell within its box to the specified borders.
+		The value is a string containing the characters 'l' (left
+		border), 'r' (right border), 't' (top border), 'b' (bottom
+		border) and 'c' (center). The default value is 'lrtb'.
+
 
 The Common STFL Scripting Language API
 --------------------------------------
@@ -376,15 +382,14 @@ are neither modified nor freed by STFL.
 
 The functions which may return an undefined value will return a null-pointer
 in C. All string parameters which are null-pointers are interpreted as they
-where empty strings. Boolean values are represented using integers (0 = FALSE,
-any other value = TRUE).
+where empty strings.
 
 SPL API Notes
 ~~~~~~~~~~~~~
 
 The stfl_free() function is not implemented in SPL because the SPL garbage
 collector does call the low-level STFL free function automatically. The
-stfl_return() function is automatically called when the STFL module is unloaded
+stfl_reset() function is automatically called when the STFL module is unloaded
 (i.e. on program termination).
 
 The stfl_quote() function can also be called using the name encode_stfl() so
@@ -393,12 +398,24 @@ it can be used with the SPL encoding/quoting operator (::).
 Python API Notes
 ~~~~~~~~~~~~~~~~
 
-The STFL Python bindings are still under development and not ready yet.
+The stfl_free() function is not implemented in Python because the garbage
+collector does call the low-level STFL free function automatically. The
+stfl_reset() function is automatically called on program termination.
+
+The functions which take a form as first parameter can also be called as method
+of the form. All functions are in the "stfl" namespace, so the "stfl_" prefix
+for the function names is replaced with "stfl." in python.
 
 Perl API Notes
 ~~~~~~~~~~~~~~
 
-The STFL Perl bindings are still under development and not ready yet.
+The stfl_free() function is not implemented in Perl because the garbage
+collector does call the low-level STFL free function automatically. The
+stfl_reset() function is automatically called on program termination.
+
+The functions which take a form as first parameter can also be called as method
+of the form. All functions are in the "stfl" namespace, so the "stfl_" prefix
+for the function names is replaced with "stfl::" in python.
 
 Ruby API Notes
 ~~~~~~~~~~~~~~
@@ -438,8 +455,8 @@ has been pressed that is reserved to be interpreted by the application code:
 The 2nd parameter is a timeout in ms. When no key has been pressed until this
 timeout has been reached. Set this parameter to 0 to disable the timeout.
 
-stfl_return()
-~~~~~~~~~~~~~
+stfl_reset()
+~~~~~~~~~~~~
 
 The stfl_run() function automatically activates ncurses. This function
 can be used to explicitely switch back to normal text mode. In some
@@ -479,17 +496,18 @@ Return the subtree starting with the widget specified in the 2nd parameter as
 STFL code fragment. The entire form is return when the 2nd parameter is an
 empty string or undefined. All widget and variable names in the dump are
 prefixed with the string in the 3rd parameter. The information which widget has
-the focus is also included in the dump when the 4th parameter is TRUE.
+the focus is also included in the dump when the 4th parameter is an integer
+not equal 0.
 
 The function returns an undefined value when there was an error.
 
-stfl_import(form, name, mode, text)
+stfl_modify(form, name, mode, text)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Import the STFL code specified in the 4th parameter to an existing form. The
 2nd parameter is used to specify a widget which is used as starting point for
-the import. The 3rd parameter is a string specifying how the STFL code should
-be imported:
+the modification. The 3rd parameter is a string specifying how the new STFL
+code should be added to the widget tree:
 
 	replace
 		Replace the widget in the tree with the new tree.
@@ -567,12 +585,20 @@ parameter:
 The default mode is "interactive".
 
 
+STFL Internals
+--------------
+
+TO BE WRITTEN
+
+
 TODOs
 -----
 
 - More widgets and more widget variables
-- Improve error handling and reporting
+- Common 'on*' event handler variables
+- Special stfl_run(f, 1) and stfl_run(f, -1)
+- Pseudo variables for x, y, w, h, minw, minh
+- Missing error handling and reporting
 - Bindings for more scripting languages
-- Bigger SPL example applications
-- Unicode (UTF-8) support
+- Unicode (UTF-8) support (?)
 

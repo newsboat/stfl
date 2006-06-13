@@ -95,10 +95,10 @@ static struct spl_node *handler_stfl_run(struct spl_task *task, void *data)
 /**
  * Return to standard text mode
  */
-// builtin stfl_return()
-static struct spl_node *handler_stfl_return(struct spl_task *task, void *data)
+// builtin stfl_reset()
+static struct spl_node *handler_stfl_reset(struct spl_task *task, void *data)
 {
-	stfl_return();
+	stfl_reset();
 	return 0;
 }
 
@@ -175,14 +175,14 @@ static struct spl_node *handler_stfl_dump(struct spl_task *task, void *data)
 /**
  * Import STFL code to an existing form
  */
-// builtin stfl_import(form, name, mode, text)
-static struct spl_node *handler_stfl_import(struct spl_task *task, void *data)
+// builtin stfl_modify(form, name, mode, text)
+static struct spl_node *handler_stfl_modify(struct spl_task *task, void *data)
 {
 	struct stfl_form *f = clib_get_stfl_form(task);
 	char *name = spl_clib_get_string(task);
 	char *mode = spl_clib_get_string(task);
 	char *text = spl_clib_get_string(task);
-	stfl_import(f, name, mode, text);
+	stfl_modify(f, name, mode, text);
 	return 0;
 }
 
@@ -225,7 +225,7 @@ void SPL_ABI(spl_mod_stfl_init)(struct spl_vm *vm, struct spl_module *mod, int r
 	spl_clib_reg(vm, "stfl_create", handler_stfl_create, 0);
 
 	spl_clib_reg(vm, "stfl_run", handler_stfl_run, 0);
-	spl_clib_reg(vm, "stfl_return", handler_stfl_return, 0);
+	spl_clib_reg(vm, "stfl_reset", handler_stfl_reset, 0);
 
 	spl_clib_reg(vm, "stfl_get", handler_stfl_get, 0);
 	spl_clib_reg(vm, "stfl_set", handler_stfl_set, 0);
@@ -237,7 +237,7 @@ void SPL_ABI(spl_mod_stfl_init)(struct spl_vm *vm, struct spl_module *mod, int r
 	spl_clib_reg(vm, "stfl_quote", handler_stfl_quote, 0);
 
 	spl_clib_reg(vm, "stfl_dump", handler_stfl_dump, 0);
-	spl_clib_reg(vm, "stfl_import", handler_stfl_import, 0);
+	spl_clib_reg(vm, "stfl_modify", handler_stfl_modify, 0);
 	spl_clib_reg(vm, "stfl_lookup", handler_stfl_lookup, 0);
 
 	spl_clib_reg(vm, "stfl_error", handler_stfl_error, 0);
@@ -246,6 +246,6 @@ void SPL_ABI(spl_mod_stfl_init)(struct spl_vm *vm, struct spl_module *mod, int r
 
 void SPL_ABI(spl_mod_stfl_done)(struct spl_vm *vm, struct spl_module *mod)
 {
-	stfl_return();
+	stfl_reset();
 }
 

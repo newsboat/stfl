@@ -1,3 +1,5 @@
+#!/usr/bin/env splrun
+
 /*
  *  STFL - The Structured Terminal Forms Language/Library
  *  Copyright (C) 2006  Clifford Wolf <clifford@clifford.at>
@@ -24,6 +26,13 @@ load "sql_utils";
 load "stfl";
 
 var db = sql_connect("sqlite", "example.db");
+
+{
+	var count = sql_value(db, "SELECT count(*) FROM people");
+	var message = "$count messages in database";
+	stfl_run(stfl_create("{vbox tie:c {table{label .border:lrtb "
+			"text:${stfl::message}}}}"), 3000);
+}
 
 function search()
 {
@@ -60,7 +69,6 @@ function search()
 		:     pos_name[result_rowid]:
 		:     style_focus:bg=blue,fg=white,attr=bold
 		:     style_selected:bg=blue,fg=black
-		:     .tie:lrt
 		:     .colspan:3
 		:     .border:lrtb
 	</>);
@@ -79,7 +87,7 @@ function search()
 			</spl:if>
 			: LIMIT 50
 		</>);
-		stfl_import(f, "result", "replace_inner", <:>
+		stfl_modify(f, "result", "replace_inner", <:>
 			: list
 			<spl:foreach var="[]t" list="tuples">
 			:   listitem[rowid_${t.rowid}]
@@ -103,8 +111,7 @@ function search()
 			perform_search();
 
 		case event ~== "ESC":
-			stfl_return();
-			debug stfl_get(f, "result_rowid");
+			stfl_reset();
 			return;
 		}
 	}

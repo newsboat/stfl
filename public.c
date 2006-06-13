@@ -40,8 +40,8 @@ const char *stfl_run(struct stfl_form *f, int timeout) {
 	return f->event;
 }
 
-void stfl_return() {
-	stfl_form_return();
+void stfl_reset() {
+	stfl_form_reset();
 }
 
 const char *stfl_get(struct stfl_form *f, const char *name) {
@@ -82,7 +82,7 @@ const char *stfl_dump(struct stfl_form *f, const char *name, const char *prefix,
 	return last_ret;
 }
 
-static void stfl_import_before(struct stfl_widget *w, struct stfl_widget *n)
+static void stfl_modify_before(struct stfl_widget *w, struct stfl_widget *n)
 {
 	if (!n || !w || !w->parent)
 		return;
@@ -103,7 +103,7 @@ static void stfl_import_before(struct stfl_widget *w, struct stfl_widget *n)
 	last_n->next_sibling = w;
 }
 
-static void stfl_import_after(struct stfl_widget *w, struct stfl_widget *n)
+static void stfl_modify_after(struct stfl_widget *w, struct stfl_widget *n)
 {
 	if (!n || !w || !w->parent)
 		return;
@@ -125,7 +125,7 @@ static void stfl_import_after(struct stfl_widget *w, struct stfl_widget *n)
 	w->next_sibling = first_n;
 }
 
-static void stfl_import_insert(struct stfl_widget *w, struct stfl_widget *n)
+static void stfl_modify_insert(struct stfl_widget *w, struct stfl_widget *n)
 {
 	if (!n || !w)
 		return;
@@ -147,7 +147,7 @@ static void stfl_import_insert(struct stfl_widget *w, struct stfl_widget *n)
 	w->first_child = first_n;
 }
 
-static void stfl_import_append(struct stfl_widget *w, struct stfl_widget *n)
+static void stfl_modify_append(struct stfl_widget *w, struct stfl_widget *n)
 {
 	if (!n || !w)
 		return;
@@ -169,7 +169,7 @@ static void stfl_import_append(struct stfl_widget *w, struct stfl_widget *n)
 	w->last_child = last_n;
 }
 
-void stfl_import(struct stfl_form *f, const char *name, const char *mode, const char *text)
+void stfl_modify(struct stfl_form *f, const char *name, const char *mode, const char *text)
 {
 	struct stfl_widget *w = stfl_widget_by_name(f->root, name ? name : "");
 	struct stfl_widget *n = stfl_parser(text ? text : "");
@@ -177,7 +177,7 @@ void stfl_import(struct stfl_form *f, const char *name, const char *mode, const 
 	mode = mode ? mode : "";
 
 	if (!strcmp(mode, "replace")) {
-		stfl_import_after(w, n);
+		stfl_modify_after(w, n);
 		stfl_widget_free(w);
 		goto finish;
 	}
@@ -185,55 +185,55 @@ void stfl_import(struct stfl_form *f, const char *name, const char *mode, const 
 	if (!strcmp(mode, "replace_inner")) {
 		while (w->first_child)
 			stfl_widget_free(w->first_child);
-		stfl_import_insert(w, n->first_child);
+		stfl_modify_insert(w, n->first_child);
 		n->first_child = n->last_child = 0;
 		stfl_widget_free(n);
 		goto finish;
 	}
 
 	if (!strcmp(mode, "insert")) {
-		stfl_import_insert(w, n);
+		stfl_modify_insert(w, n);
 		goto finish;
 	}
 
 	if (!strcmp(mode, "insert_inner")) {
-		stfl_import_insert(w, n->first_child);
+		stfl_modify_insert(w, n->first_child);
 		n->first_child = n->last_child = 0;
 		stfl_widget_free(n);
 		goto finish;
 	}
 
 	if (!strcmp(mode, "append")) {
-		stfl_import_append(w, n);
+		stfl_modify_append(w, n);
 		goto finish;
 	}
 
 	if (!strcmp(mode, "append_inner")) {
-		stfl_import_append(w, n->first_child);
+		stfl_modify_append(w, n->first_child);
 		n->first_child = n->last_child = 0;
 		stfl_widget_free(n);
 		goto finish;
 	}
 
 	if (!strcmp(mode, "before")) {
-		stfl_import_before(w, n);
+		stfl_modify_before(w, n);
 		goto finish;
 	}
 
 	if (!strcmp(mode, "before_inner")) {
-		stfl_import_before(w, n->first_child);
+		stfl_modify_before(w, n->first_child);
 		n->first_child = n->last_child = 0;
 		stfl_widget_free(n);
 		goto finish;
 	}
 
 	if (!strcmp(mode, "after")) {
-		stfl_import_after(w, n);
+		stfl_modify_after(w, n);
 		goto finish;
 	}
 
 	if (!strcmp(mode, "after_inner")) {
-		stfl_import_after(w, n->first_child);
+		stfl_modify_after(w, n->first_child);
 		n->first_child = n->last_child = 0;
 		stfl_widget_free(n);
 		goto finish;

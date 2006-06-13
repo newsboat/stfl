@@ -16,20 +16,55 @@
  *  along with this program; if not, write to the Free Software
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- *  stfl.h: The STFL C header file
+ *  stfl.i: The STFL SWIG bindings
  */
 
-#ifndef STFL_H
-#define STFL_H 1
+%module stfl
+%{
+#include <stdlib.h>
+#include "stfl.h"
+typedef struct stfl_form stfl_form;
+%}
 
-#ifdef  __cplusplus
-extern "C" {
-#endif
+typedef struct {
+} stfl_form;
 
-struct stfl_form;
+%extend stfl_form
+{
+	stfl_form(char *text) {
+		return stfl_create(text);
+	}
+	~stfl_form() {
+		stfl_free(self);
+	}
+	const char *run(int timeout) {
+		return stfl_run(self, timeout);
+	}
+	const char *stfl_get(const char *name) {
+		return stfl_get(self, name);
+	}
+	void stfl_set(const char *name, const char *value) {
+		return stfl_set(self, name, value);
+	}
+	const char *get_focus() {
+		return stfl_get_focus(self);
+	}
+	void set_focus(const char *name) {
+		stfl_set_focus(self, name);
+	}
+	const char *dump(const char *name, const char *prefix, int focus) {
+		return stfl_dump(self, name, prefix, focus);
+	}
+	void modify(const char *name, const char *mode, const char *text) {
+		stfl_modify(self, name, mode, text);
+	}
+	const char *lookup(const char *path, const char *newname) {
+		return stfl_lookup(self, path, newname);
+	}
+}
 
 extern struct stfl_form *stfl_create(const char *text);
-extern void stfl_free(struct stfl_form *f);
+// extern void stfl_free(struct stfl_form *f);
 
 extern const char *stfl_run(struct stfl_form *f, int timeout);
 extern void stfl_reset();
@@ -48,9 +83,7 @@ extern const char *stfl_lookup(struct stfl_form *f, const char *path, const char
 extern const char *stfl_error();
 extern void stfl_error_action(const char *mode);
 
-#ifdef __cplusplus
-}
-#endif
-
-#endif
+%init %{
+	atexit(stfl_reset);
+%}
 

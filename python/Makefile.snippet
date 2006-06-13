@@ -18,15 +18,20 @@
 #
 
 
-all: python/_stfl.so 
+PYTHON_VERSION = $(shell python -V 2>&1 | cut -f2 -d' ')
+
+all: python/_stfl.so python/stfl.py python/stfl.pyc
 
 install: install_python
 
-python/_stfl.so: libstfl.a stfl.h swig/stfl.i
-	cd python && cp ../swig/stfl.i stfl.i && swig -python stfl.i
-	gcc -shared -fPIC python/stfl_wrap.c -I/usr/include/python2.4 \
-		-L.. -lstfl -lncurses -o python/_stfl.so
+python/_stfl.so python/stfl.py python/stfl.pyc: libstfl.a stfl.h python/stfl.i swig/*.i
+	cd python && swig -python stfl.i
+	gcc -shared -fPIC python/stfl_wrap.c -I/usr/include/python$(PYTHON_VERSION) \
+		-I. -L. -lstfl -lncurses -o python/_stfl.so
+	cd python && python -c 'import stfl'
 
-install_python: python/_stfl.so
-	@echo "** No install target for python yet **"
+install_python: python/_stfl.so python/stfl.py python/stfl.pyc
+	cp python/_stfl.so /usr/lib/python2.4/lib-dynload/
+	cp python/stfl.pyc /usr/lib/python2.4/
+	cp python/stfl.py /usr/lib/python2.4/
 

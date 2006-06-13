@@ -475,6 +475,16 @@ static void wt_table_draw(struct stfl_widget *w, struct stfl_form *f, WINDOW *wi
 				if (m->mc_border_b)
 					c->h--;
 
+				const char *tie = stfl_widget_getkv_str(c, ".tie", "lrtb");
+				
+				if (!strchr(tie, 'l') && !strchr(tie, 'r')) c->x += (c->w - c->min_w)/2;
+				if (!strchr(tie, 'l') &&  strchr(tie, 'r')) c->x += c->w - c->min_w;
+				if (!strchr(tie, 'l') || !strchr(tie, 'r')) c->w = c->min_w;
+				
+				if (!strchr(tie, 't') && !strchr(tie, 'b')) c->y += (c->h - c->min_h)/2;
+				if (!strchr(tie, 't') &&  strchr(tie, 'b')) c->y += c->h - c->min_h;
+				if (!strchr(tie, 't') || !strchr(tie, 'b')) c->h = c->min_h;
+
 				c->type->f_draw(c, f, win);
 			}
 			x += d->cold[i].size;
@@ -574,6 +584,71 @@ static void wt_table_draw(struct stfl_widget *w, struct stfl_form *f, WINDOW *wi
 	}
 }
 
+static int wt_table_process(struct stfl_widget *w, struct stfl_widget *fw, struct stfl_form *f, int ch)
+{
+	struct table_data *d = w->internal_data;
+	struct stfl_widget *n, *c;
+	int i, j, k;
+
+	if (ch != KEY_LEFT && ch != KEY_RIGHT && ch != KEY_UP && ch != KEY_DOWN)
+		return 0;
+
+	c = stfl_find_child_tree(w, fw);
+
+	for (j=0; j < d->rows; j++)
+	for (i=0; i < d->cols; i++)
+	{
+		struct table_cell_data *m = d->map[i][j];
+		if (!m || m->w != c) continue;
+
+		switch (ch)
+		{
+		case KEY_LEFT:
+			for (k=i-1; k >= 0; k--) {
+				m = d->map[k][j];
+				if (!m) continue;
+				n = stfl_find_first_focusable(m->w);
+				if (!n) continue;
+				stfl_switch_focus(fw, n, f);
+				return 1;
+			}
+			break;
+		case KEY_RIGHT:
+			for (k=i+1; k < d->cols; k++) {
+				m = d->map[k][j];
+				if (!m) continue;
+				n = stfl_find_first_focusable(m->w);
+				if (!n) continue;
+				stfl_switch_focus(fw, n, f);
+				return 1;
+			}
+			break;
+		case KEY_UP:
+			for (k=j-1; k >= 0; k--) {
+				m = d->map[i][k];
+				if (!m) continue;
+				n = stfl_find_first_focusable(m->w);
+				if (!n) continue;
+				stfl_switch_focus(fw, n, f);
+				return 1;
+			}
+			break;
+		case KEY_DOWN:
+			for (k=j+1; k < d->rows; k++) {
+				m = d->map[i][k];
+				if (!m) continue;
+				n = stfl_find_first_focusable(m->w);
+				if (!n) continue;
+				stfl_switch_focus(fw, n, f);
+				return 1;
+			}
+			break;
+		}
+	}
+
+	return 0;
+}
+
 struct stfl_widget_type stfl_widget_type_table = {
 	"table",
 	0, // f_init
@@ -582,7 +657,7 @@ struct stfl_widget_type stfl_widget_type_table = {
 	0, // f_leave
 	wt_table_prepare,
 	wt_table_draw,
-	0  // f_process
+	wt_table_process
 };
 
 static void wt_tablebr_prepare(struct stfl_widget *w, struct stfl_form *f) { }

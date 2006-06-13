@@ -117,7 +117,7 @@ extern int stfl_focus_next(struct stfl_widget *w, struct stfl_widget *old_fw, st
 
 extern struct stfl_form *stfl_form_new();
 extern int stfl_form_run(struct stfl_form *f, int timeout);
-extern void stfl_form_return();
+extern void stfl_form_reset();
 extern void stfl_form_free(struct stfl_form *f);
 
 extern void stfl_check_setfocus(struct stfl_form *f, struct stfl_widget *w);

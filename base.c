@@ -553,7 +553,7 @@ int stfl_form_run(struct stfl_form *f, int timeout)
 	return 1;
 }
 
-void stfl_form_return()
+void stfl_form_reset()
 {
 	if (curses_active) {
 		endwin();

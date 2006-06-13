@@ -16,34 +16,26 @@
  *  along with this program; if not, write to the Free Software
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- *  example.c: A little STFL example
+ *  shortnames.i: Use short function names in SWIG bindings
  */
 
-#include "stfl.h"
+%rename(create) stfl_create;
+// %rename(free) stfl_free;
 
-#include <string.h>
-#include <stdlib.h>
-#include <stdio.h>
+%rename(run) stfl_run;
+%rename(reset) stfl_reset;
 
-int main()
-{
-	struct stfl_form *f = stfl_create("<example.stfl>");
+%rename(get) stfl_get;
+%rename(set) stfl_set;
 
-	stfl_set(f, "value_a", "This is a little");
-	stfl_set(f, "value_b", "test for STFL!");
+%rename(get_focus) stfl_get_focus;
+%rename(set_focus) stfl_set_focus;
 
-	const char *event = 0;
-	while (!event || strcmp(event, "ESC"))
-		event = stfl_run(f, 0);
+%rename(quote) stfl_quote;
+%rename(dump) stfl_dump;
+%rename(modify) stfl_modify;
+%rename(lookup) stfl_lookup;
 
-	stfl_reset();
-
-	printf("A: %s\n", stfl_get(f, "value_a"));
-	printf("B: %s\n", stfl_get(f, "value_b"));
-	printf("C: %s\n", stfl_get(f, "value_c"));
-
-	stfl_free(f);
-
-	return 0;
-}
+%rename(error) stfl_error;
+%rename(error_action) stfl_error_action;
 
