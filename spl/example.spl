@@ -29,7 +29,7 @@ var db = sql_connect("sqlite", "example.db");
 
 {
 	var count = sql_value(db, "SELECT count(*) FROM people");
-	var message = "$count messages in database";
+	var message = "$count addresses in database";
 	stfl_run(stfl_create("{vbox tie:c {table{label .border:lrtb "
 			"text:${stfl::message}}}}"), 3000);
 }

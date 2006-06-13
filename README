@@ -357,6 +357,11 @@ this widget:
 		border), 'r' (right border), 't' (top border), 'b' (bottom
 		border) and 'c' (center). The default value is 'lrtb'.
 
+list
+~~~~
+
+TO BE WRITTEN
+
 
 The Common STFL Scripting Language API
 --------------------------------------
@@ -594,7 +599,7 @@ TO BE WRITTEN
 TODOs
 -----
 
-- More widgets and more widget variables
+- Check- and radioboxes, buttons, textareas
 - Common 'on*' event handler variables
 - Special stfl_run(f, 1) and stfl_run(f, -1)
 - Pseudo variables for x, y, w, h, minw, minh
