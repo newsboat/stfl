@@ -68,10 +68,16 @@ struct stfl_widget {
 	char *name, *cls;
 };
 
+struct stfl_event {
+	struct stfl_event *next;
+	char *event;
+};
+
 struct stfl_form {
 	struct stfl_widget *root;
 	int current_focus_id;
 	int cursor_x, cursor_y;
+	struct stfl_event *event_queue;
 	char *event;
 };
 
@@ -116,7 +122,8 @@ extern int stfl_focus_prev(struct stfl_widget *w, struct stfl_widget *old_fw, st
 extern int stfl_focus_next(struct stfl_widget *w, struct stfl_widget *old_fw, struct stfl_form *f);
 
 extern struct stfl_form *stfl_form_new();
-extern int stfl_form_run(struct stfl_form *f, int timeout);
+extern void stfl_form_event(struct stfl_form *f, char *event);
+extern void stfl_form_run(struct stfl_form *f, int timeout);
 extern void stfl_form_reset();
 extern void stfl_form_free(struct stfl_form *f);
 

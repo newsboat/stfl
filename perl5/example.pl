@@ -17,7 +17,7 @@
 #  along with this program; if not, write to the Free Software
 #  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
-#  example.pl: A little STFL SPL example
+#  example.pl: A little STFL Perl example
 #
 
 use strict;
@@ -72,15 +72,18 @@ sub newlist()
 		push @templist, $i if $files[$i] =~ /$searchterm/i;
 	}
 
+	$f->run(-1);
+	my $w = $f->get("filelist:w") - 4;
+
 	my $code = "{list";
-	for (1..30) {
+	for (1..$f->get("filelist:h")) {
 		last if $#templist < 0;
 		my $tempid = int(rand($#templist + 1));
 		my $id = $templist[$tempid];
 		splice @templist, $tempid, 1;
 		my $filename = $files[$id];
 		$filename =~ s/.*\/(.*?\/.*?)$/$1/;
-		$filename =~ s/.{4,}(.{70})/...$1/;
+		$filename =~ s/.{4,}(.{$w})/...$1/;
 		$filename = stfl::quote($filename);
 		$code .= "{listitem[file_$id] text:$filename}";
 	}

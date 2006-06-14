@@ -41,6 +41,8 @@ clean:
 	rm -f perl5/stfl_wrap.c perl5/stfl.pm perl5/build_ok
 	rm -f python/stfl.py python/stfl.pyc python/_stfl.so 
 	rm -f python/stfl_wrap.c python/stfl_wrap.o
+	rm -f ruby/Makefile ruby/stfl_wrap.c ruby/stfl_wrap.o
+	rm -f ruby/stfl.so ruby/build_ok
 
 Makefile.deps: *.c *.h
 	$(CC) -MM *.c > Makefile.deps
@@ -61,6 +63,10 @@ endif
 
 ifeq ($(FOUND_SWIG)$(FOUND_PYTHON),11)
 include python/Makefile.snippet
+endif
+
+ifeq ($(FOUND_SWIG)$(FOUND_RUBY),11)
+include ruby/Makefile.snippet
 endif
 
 .PHONY: all clean install install_spl

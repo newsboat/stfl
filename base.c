@@ -431,16 +431,28 @@ struct stfl_form *stfl_form_new()
 	return f;
 }
 
-int stfl_form_run(struct stfl_form *f, int timeout)
+void stfl_form_event(struct stfl_form *f, char *event)
+{
+	struct stfl_event **ep = &f->event_queue;
+	struct stfl_event *e = calloc(1, sizeof(struct stfl_event));
+	e->event = event;
+	while (*ep)
+		ep = &(*ep)->next;
+	*ep = e;
+}
+
+void stfl_form_run(struct stfl_form *f, int timeout)
 {
 	if (f->event)
 		free(f->event);
 	f->event = 0;
 
+	if (timeout >= 0 && f->event_queue)
+		goto unshift_next_event;
+
 	if (!f->root) {
 		fprintf(stderr, "STFL Fatal Error: Called stfl_form_run() without root widget.\n");
 		abort();
-		return 0;
 	}
 
 	if (!curses_active)
@@ -489,31 +501,40 @@ int stfl_form_run(struct stfl_form *f, int timeout)
 	f->root->type->f_draw(f->root, f, stdscr);
 	refresh();
 
-	wtimeout(stdscr, timeout <= 0 ? -1 : timeout);
+	if (timeout < 0)
+		return;
+
+	wtimeout(stdscr, timeout == 0 ? -1 : timeout);
 	wmove(stdscr, f->cursor_y, f->cursor_x);
 	int ch = wgetch(stdscr);
 	struct stfl_widget *w = fw;
 
+	if (ch == ERR) {
+		stfl_form_event(f, strdup("TIMEOUT"));
+		goto unshift_next_event;
+	}
+
 	while (w) {
 		if (w->type->f_process && w->type->f_process(w, fw, f, ch))
-			return 0;
+			goto unshift_next_event;
 		w = w->parent;
 	}
 
 	if (ch == '\r' || ch == '\n') {
-		f->event = strdup("ENTER");
-		return 0;
+		stfl_form_event(f, strdup("ENTER"));
+		goto unshift_next_event;
 	}
 
 	if (ch == 27) {
-		f->event = strdup("ESC");
-		return 0;
+		stfl_form_event(f, strdup("ESC"));
+		goto unshift_next_event;
 	}
 
 	if (KEY_F(0) <= ch && ch <= KEY_F(63)) {
-		f->event = malloc(4);
-		snprintf(f->event, 4, "F%d", ch - KEY_F0);
-		return 0;
+		char *event = malloc(4);
+		snprintf(event, 4, "F%d", ch - KEY_F0);
+		stfl_form_event(f, event);
+		goto unshift_next_event;
 	}
 
 	if (ch == '\t')
@@ -543,14 +564,23 @@ int stfl_form_run(struct stfl_form *f, int timeout)
 			f->current_focus_id = fw ? fw->id : 0;
 		}
 
-		return 0;
+		goto unshift_next_event;
 	}
 
-#if 0
-	fprintf(stderr, ">> Unhandled input char: %d 0%o 0x%x\n", ch, ch, ch);
-#endif
+	{
+		char *event = malloc(16);
+		snprintf(event, 4, "CHAR(%d)", ch);
+		stfl_form_event(f, event);
+		goto unshift_next_event;
+	}
 
-	return 1;
+unshift_next_event:;
+	struct stfl_event *e = f->event_queue;
+	if (e) {
+		f->event_queue = e->next;
+		f->event = e->event;
+		free(e);
+	}
 }
 
 void stfl_form_reset()

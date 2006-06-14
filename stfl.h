@@ -26,6 +26,8 @@
 extern "C" {
 #endif
 
+extern int stfl_api_allow_null_pointers;
+
 struct stfl_form;
 
 extern struct stfl_form *stfl_create(const char *text);

@@ -360,7 +360,32 @@ this widget:
 list
 ~~~~
 
-TO BE WRITTEN
+DOCUMENTME
+
+button
+~~~~~~
+
+DOCUMENTME  (Not implemented yet)
+
+checkbox
+~~~~~~~~
+
+DOCUMENTME  (Not implemented yet)
+
+textarea
+~~~~~~~~
+
+DOCUMENTME  (Not implemented yet)
+
+virtual
+~~~~~~~
+
+DOCUMENTME  (Not implemented yet)
+
+overlay
+~~~~~~~
+
+DOCUMENTME  (Not implemented yet)
 
 
 The Common STFL Scripting Language API
@@ -420,12 +445,18 @@ stfl_reset() function is automatically called on program termination.
 
 The functions which take a form as first parameter can also be called as method
 of the form. All functions are in the "stfl" namespace, so the "stfl_" prefix
-for the function names is replaced with "stfl::" in python.
+for the function names is replaced with "stfl::" in perl.
 
 Ruby API Notes
 ~~~~~~~~~~~~~~
 
-The STFL Ruby bindings are still under development and not ready yet.
+The stfl_free() function is not implemented in Perl because the garbage
+collector does call the low-level STFL free function automatically. The
+stfl_reset() function is automatically called on program termination.
+
+The functions which take a form as first parameter can also be called as method
+of the form. All functions are in the "Stfl" namespace, so the "stfl_" prefix
+for the function names is replaced with "Stfl." in ruby.
 
 stfl_create(text)
 ~~~~~~~~~~~~~~~~~
@@ -444,9 +475,12 @@ as no-op.
 stfl_run(form, timeout)
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-Display the form and process one input character. Return an undefined value if
-the key has been processed by the form and one of the folowing strings if a key
-has been pressed that is reserved to be interpreted by the application code:
+Return the next event. If no more prior generated events are waiting display
+the form and process one input character. The following events are generated
+directly by the STFL core:
+
+	TIMEOUT
+		The timeout has been reached.
 
 	ENTER
 		The return key has been pressed.
@@ -459,6 +493,11 @@ has been pressed that is reserved to be interpreted by the application code:
 
 The 2nd parameter is a timeout in ms. When no key has been pressed until this
 timeout has been reached. Set this parameter to 0 to disable the timeout.
+
+When the timeout parameter is set to -1 the form is displayed independent of
+the current status of the event queue and the function returns right after
+displaying the form without handling any input characters. In this mode always
+an undefined value is returned.
 
 stfl_reset()
 ~~~~~~~~~~~~
@@ -590,20 +629,29 @@ parameter:
 The default mode is "interactive".
 
 
+Pseudo Variables
+----------------
+
+DOCUMENTME
+
+
+Event Handler Variables
+-----------------------
+
+DOCUMENTME  (Not implemented yet)
+
+
 STFL Internals
 --------------
 
-TO BE WRITTEN
+DOCUMENTME
 
 
 TODOs
 -----
 
-- Check- and radioboxes, buttons, textareas
+- Implement so far unimplemented widgets
 - Common 'on*' event handler variables
-- Special stfl_run(f, 1) and stfl_run(f, -1)
-- Pseudo variables for x, y, w, h, minw, minh
 - Missing error handling and reporting
-- Bindings for more scripting languages
-- Unicode (UTF-8) support (?)
+- Implement stfl_lookup() function
 

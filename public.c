@@ -24,40 +24,95 @@
 #include <stdlib.h>
 #include <string.h>
 
-struct stfl_form *stfl_create(const char *text) {
+int stfl_api_allow_null_pointers = 1;
+
+static const char *checkret(const char *txt)
+{
+	if (!stfl_api_allow_null_pointers && !txt)
+		return "";
+	return txt;
+}
+
+struct stfl_form *stfl_create(const char *text)
+{
 	struct stfl_form *f = stfl_form_new();
 	f->root = stfl_parser(text ? text : "");
 	stfl_check_setfocus(f, f->root);
 	return f;
 }
 
-void stfl_free(struct stfl_form *f) {
+void stfl_free(struct stfl_form *f)
+{
 	stfl_form_free(f);
 }
 
-const char *stfl_run(struct stfl_form *f, int timeout) {
+const char *stfl_run(struct stfl_form *f, int timeout)
+{
 	stfl_form_run(f, timeout);
-	return f->event;
+	return checkret(f->event);
 }
 
-void stfl_reset() {
+void stfl_reset()
+{
 	stfl_form_reset();
 }
 
-const char *stfl_get(struct stfl_form *f, const char *name) {
-	return stfl_getkv_by_name_str(f->root, name ? name : "", 0);
+const char *stfl_get(struct stfl_form *f, const char *name)
+{
+	char *pseudovar_sep = name ? strchr(name, ':') : 0;
+
+	if (pseudovar_sep)
+	{
+		char w_name[pseudovar_sep-name+1];
+		memcpy(w_name, name, pseudovar_sep-name);
+		w_name[pseudovar_sep-name] = 0;
+
+		struct stfl_widget *w = stfl_widget_by_name(f->root, w_name);
+		static char ret_buffer[16];
+
+		if (!strcmp(pseudovar_sep+1, "x")) {
+			snprintf(ret_buffer, 16, "%d", w->x);
+			return checkret(ret_buffer);
+		}
+		if (!strcmp(pseudovar_sep+1, "y")) {
+			snprintf(ret_buffer, 16, "%d", w->y);
+			return checkret(ret_buffer);
+		}
+		if (!strcmp(pseudovar_sep+1, "w")) {
+			snprintf(ret_buffer, 16, "%d", w->w);
+			return checkret(ret_buffer);
+		}
+		if (!strcmp(pseudovar_sep+1, "h")) {
+			snprintf(ret_buffer, 16, "%d", w->h);
+			return checkret(ret_buffer);
+		}
+		if (!strcmp(pseudovar_sep+1, "minw")) {
+			snprintf(ret_buffer, 16, "%d", w->min_w);
+			return checkret(ret_buffer);
+		}
+		if (!strcmp(pseudovar_sep+1, "minh")) {
+			snprintf(ret_buffer, 16, "%d", w->min_h);
+			return checkret(ret_buffer);
+		}
+		return checkret(0);
+	}
+
+	return checkret(stfl_getkv_by_name_str(f->root, name ? name : "", 0));
 }
 
-void stfl_set(struct stfl_form *f, const char *name, const char *value) {
+void stfl_set(struct stfl_form *f, const char *name, const char *value)
+{
 	stfl_setkv_by_name_str(f->root, name ? name : "", value ? value : "");
 }
 
-const char *stfl_get_focus(struct stfl_form *f) {
+const char *stfl_get_focus(struct stfl_form *f)
+{
 	struct stfl_widget *fw = stfl_widget_by_id(f->root, f->current_focus_id);
-	return fw ? fw->name : 0;
+	return checkret(fw ? fw->name : 0);
 }
 
-void stfl_set_focus(struct stfl_form *f, const char *name) {
+void stfl_set_focus(struct stfl_form *f, const char *name)
+{
 	struct stfl_widget *fw = stfl_widget_by_name(f->root, name ? name : "");
 	stfl_switch_focus(0, fw, f);
 }
@@ -68,7 +123,7 @@ const char *stfl_quote(const char *text)
 	if (last_ret)
 		free(last_ret);
 	last_ret = stfl_quote_backend(text ? text : "");
-	return last_ret;
+	return checkret(last_ret);
 }
 
 const char *stfl_dump(struct stfl_form *f, const char *name, const char *prefix, int focus)
@@ -79,7 +134,7 @@ const char *stfl_dump(struct stfl_form *f, const char *name, const char *prefix,
 	if (last_ret)
 		free(last_ret);
 	last_ret = stfl_widget_dump(w, prefix ? prefix : "", focus ? f->current_focus_id : 0);
-	return last_ret;
+	return checkret(last_ret);
 }
 
 static void stfl_modify_before(struct stfl_widget *w, struct stfl_widget *n)
@@ -246,13 +301,13 @@ finish:
 
 const char *stfl_lookup(struct stfl_form *f, const char *path, const char *newname)
 {
-	return 0;
+	return checkret(0);
 }
 
 const char *stfl_error()
 {
 	abort();
-	return 0;
+	return checkret(0);
 }
 
 void stfl_error_action(const char *mode)

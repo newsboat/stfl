@@ -17,35 +17,16 @@
 #  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
 
-prefix = /usr/local
 
-ifneq ($(shell spl-config --cflags 2>/dev/null),)
-FOUND_SPL = 1
-else
-FOUND_SPL = 0
-endif
+all: ruby/build_ok
 
-ifneq ($(shell swig -help 2>/dev/null),)
-FOUND_SWIG = 1
-else
-FOUND_SWIG = 0
-endif
+install: install_ruby
 
-ifneq ($(shell perl -le 'print 1' 2>/dev/null),)
-FOUND_PERL5 = 1
-else
-FOUND_PERL5 = 0
-endif
+ruby/build_ok: libstfl.a stfl.h ruby/stfl.i swig/*.i
+	cd ruby && swig -ruby stfl.i && ruby extconf.rb
+	make -C ruby clean && make -C ruby LIBS+="-L.. -lstfl -lncurses"
+	touch ruby/build_ok
 
-ifneq ($(shell python -c 'print 1' 2>/dev/null),)
-FOUND_PYTHON = 1
-else
-FOUND_PYTHON = 0
-endif
-
-ifneq ($(shell ruby -e 'puts 1' 2>/dev/null),)
-FOUND_RUBY = 1
-else
-FOUND_RUBY = 0
-endif
+install_ruby: ruby/build_ok
+	make -C ruby install
 
