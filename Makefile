@@ -29,14 +29,14 @@ example: LDLIBS += -lstfl
 example: libstfl.a
 
 libstfl.a: public.o base.o parser.o dump.o style.o \
-           wt_label.o wt_input.o wt_box.o wt_table.o wt_list.o
+           $(patsubst %.c,%.o,$(wildcard widgets/*.c))
 	rm -f $@
 	ar qc $@ $^
 	ranlib $@
 
 clean:
 	rm -f libstfl.a example core core.* *.o Makefile.deps
-	rm -f spl/mod_stfl.so spl/example.db
+	rm -f widgets/*.o spl/mod_stfl.so spl/example.db
 	cd perl5 && perl Makefile.PL && make clean && rm -f Makefile.old
 	rm -f perl5/stfl_wrap.c perl5/stfl.pm perl5/build_ok
 	rm -f python/stfl.py python/stfl.pyc python/_stfl.so 
