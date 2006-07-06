@@ -24,6 +24,7 @@ use strict;
 use stfl;
 
 my @files;
+my $first_xmms_exec = 1;
 
 {
 	my $dirlist = join " ", @ARGV;
@@ -98,7 +99,12 @@ sub play
 	$f->get("listposname") =~ /(\d+)/;
 	my $filename = $files[$1];
 	$filename =~ s/'/'\\''/g;
-	system("xmms -e '$filename' &");
+	if ($first_xmms_exec) {
+		system("xmms -e -p '$filename' &");
+		$first_xmms_exec = 0;
+	} else {
+		system("xmms -e '$filename' &");
+	}
 }
 
 sub helpmsg
