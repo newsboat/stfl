@@ -35,6 +35,7 @@ struct stfl_widget_type *stfl_widget_types[] = {
 	&stfl_widget_type_tablebr,
 	&stfl_widget_type_list,
 	&stfl_widget_type_listitem,
+	&stfl_widget_type_textview,
 	0
 };
 
@@ -569,7 +570,7 @@ void stfl_form_run(struct stfl_form *f, int timeout)
 
 	{
 		char *event = malloc(16);
-		snprintf(event, 4, "CHAR(%d)", ch);
+		snprintf(event, 16, "CHAR(%d)", ch);
 		stfl_form_event(f, event);
 		goto unshift_next_event;
 	}
