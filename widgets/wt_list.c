@@ -22,6 +22,7 @@
 #include "stfl_internals.h"
 
 #include <string.h>
+#include <alloca.h>
 
 static void fix_offset_pos(struct stfl_widget *w)
 {
@@ -74,6 +75,8 @@ static void wt_list_prepare(struct stfl_widget *w, struct stfl_form *f)
 
 static void wt_list_draw(struct stfl_widget *w, struct stfl_form *f, WINDOW *win)
 {
+	const char * text;
+	char * fillup;
 	fix_offset_pos(w);
 
 	int offset = stfl_widget_getkv_int(w, "offset", 0);
@@ -84,7 +87,7 @@ static void wt_list_draw(struct stfl_widget *w, struct stfl_form *f, WINDOW *win
 	const char *style_normal = stfl_widget_getkv_str(w, "style_normal", "");
 
 	struct stfl_widget *c;
-	int i;
+	int i, j;
 
 	for (i=0, c=w->first_child; c && i < offset+w->h; i++, c=c->next_sibling)
 	{
@@ -101,8 +104,18 @@ static void wt_list_draw(struct stfl_widget *w, struct stfl_form *f, WINDOW *win
 		} else
 			stfl_style(win, style_normal);
 
-		mvwaddnstr(win, w->y+i-offset, w->x,
-				stfl_widget_getkv_str(c, "text", ""), w->w);
+		text = stfl_widget_getkv_str(c, "text", "");
+		
+		if (strlen(text) < w->w) {
+			fillup = alloca(w->w - strlen(text) + 1);
+			for (j=0;j < w->w - strlen(text);++j) {
+				fillup[j] = ' ';
+			}
+			fillup[w->w - strlen(text)] = '\0';
+			mvwaddnstr(win, w->y+i-offset, w->x + strlen(text), fillup, strlen(fillup));
+		}
+
+		mvwaddnstr(win, w->y+i-offset, w->x, text, w->w);
 	}
 
 	if (f->current_focus_id == w->id)
