@@ -52,7 +52,7 @@ STFL Forms consist of (instances of) widgets which are organized in a tree. A
 special language - the Structured Terminal Forms Language - can be used to
 describe such trees in an efficient and still easy to read and maintain way.
 
-The Structured Terminal Forms Language has only two syntactiacal constructs:
+The Structured Terminal Forms Language has only two syntactical constructs:
 Variable declarations and widget instanciations. Each widget instanciation
 may contain variable declarations and child widget instanciations.
 
