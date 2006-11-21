@@ -32,7 +32,7 @@ vbox
     @input#style_normal:bg=blue,fg=black
     @input#.border:rtb
 
-    @L#style:fg=red
+    @L#style_normal:fg=red
     @L#.expand:0
     @L#.border:ltb
     @L#.spacer:r
