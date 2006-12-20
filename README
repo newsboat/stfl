@@ -468,7 +468,7 @@ parameter.
 stfl_free(form)
 ~~~~~~~~~~~~~~~
 
-Free all resouces associated with this form. On languages with a garbage
+Free all resources associated with this form. On languages with a garbage
 collector calling this function is optional and might even be implemented
 as no-op.
 
