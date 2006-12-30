@@ -144,6 +144,20 @@ static int wt_list_process(struct stfl_widget *w, struct stfl_widget *fw, struct
 		fix_offset_pos(w);
 		return 1;
 	}
+	
+	if (ch == KEY_NPAGE) {
+		if (pos < maxpos - w->h) stfl_widget_setkv_int(w, "pos", pos + w->h);
+		else stfl_widget_setkv_int(w, "pos", maxpos);
+		fix_offset_pos(w);
+		return 1;
+	}
+
+	if (ch == KEY_PPAGE) {
+		if (pos > w->h) stfl_widget_setkv_int(w, "pos", pos - w->h);
+		else stfl_widget_setkv_int(w, "pos", 0);
+		fix_offset_pos(w);
+		return 1;
+	}
 
 	return 0;
 }
