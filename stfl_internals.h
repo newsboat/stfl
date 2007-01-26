@@ -28,6 +28,7 @@ extern "C" {
 
 #include "stfl.h"
 #include <curses.h>
+#include <pthread.h>
 
 struct stfl_widget_type;
 struct stfl_kv;
@@ -79,6 +80,7 @@ struct stfl_form {
 	int cursor_x, cursor_y;
 	struct stfl_event *event_queue;
 	char *event;
+	pthread_mutex_t mtx;
 };
 
 extern struct stfl_widget_type *stfl_widget_types[];

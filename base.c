@@ -429,6 +429,9 @@ int stfl_switch_focus(struct stfl_widget *old_fw, struct stfl_widget *new_fw, st
 struct stfl_form *stfl_form_new()
 {
 	struct stfl_form *f = calloc(1, sizeof(struct stfl_form));
+	if (f) {
+		pthread_mutex_init(&f->mtx, NULL);
+	}
 	return f;
 }
 
@@ -444,6 +447,8 @@ void stfl_form_event(struct stfl_form *f, char *event)
 
 void stfl_form_run(struct stfl_form *f, int timeout)
 {
+	pthread_mutex_lock(&f->mtx);
+
 	if (f->event)
 		free(f->event);
 	f->event = 0;
@@ -502,8 +507,10 @@ void stfl_form_run(struct stfl_form *f, int timeout)
 	f->root->type->f_draw(f->root, f, stdscr);
 	refresh();
 
-	if (timeout < 0)
+	if (timeout < 0) {
+		pthread_mutex_unlock(&f->mtx);
 		return;
+	}
 
 	wtimeout(stdscr, timeout == 0 ? -1 : timeout);
 	wmove(stdscr, f->cursor_y, f->cursor_x);
@@ -582,6 +589,8 @@ unshift_next_event:;
 		f->event = e->event;
 		free(e);
 	}
+
+	pthread_mutex_unlock(&f->mtx);
 }
 
 void stfl_form_reset()
@@ -594,10 +603,12 @@ void stfl_form_reset()
 
 void stfl_form_free(struct stfl_form *f)
 {
+	pthread_mutex_lock(&f->mtx);
 	if (f->root)
 		stfl_widget_free(f->root);
 	if (f->event)
 		free(f->event);
+	pthread_mutex_unlock(&f->mtx);
 	free(f);
 }
 

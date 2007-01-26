@@ -61,6 +61,8 @@ const char *stfl_get(struct stfl_form *f, const char *name)
 {
 	char *pseudovar_sep = name ? strchr(name, ':') : 0;
 
+	pthread_mutex_lock(&f->mtx);
+
 	if (pseudovar_sep)
 	{
 		char w_name[pseudovar_sep-name+1];
@@ -72,14 +74,17 @@ const char *stfl_get(struct stfl_form *f, const char *name)
 
 		if (!strcmp(pseudovar_sep+1, "x")) {
 			snprintf(ret_buffer, 16, "%d", w->x);
+			pthread_mutex_unlock(&f->mtx);
 			return checkret(ret_buffer);
 		}
 		if (!strcmp(pseudovar_sep+1, "y")) {
 			snprintf(ret_buffer, 16, "%d", w->y);
+			pthread_mutex_unlock(&f->mtx);
 			return checkret(ret_buffer);
 		}
 		if (!strcmp(pseudovar_sep+1, "w")) {
 			snprintf(ret_buffer, 16, "%d", w->w);
+			pthread_mutex_unlock(&f->mtx);
 			return checkret(ret_buffer);
 		}
 		if (!strcmp(pseudovar_sep+1, "h")) {
@@ -88,33 +93,50 @@ const char *stfl_get(struct stfl_form *f, const char *name)
 		}
 		if (!strcmp(pseudovar_sep+1, "minw")) {
 			snprintf(ret_buffer, 16, "%d", w->min_w);
+			pthread_mutex_unlock(&f->mtx);
 			return checkret(ret_buffer);
 		}
 		if (!strcmp(pseudovar_sep+1, "minh")) {
 			snprintf(ret_buffer, 16, "%d", w->min_h);
+			pthread_mutex_unlock(&f->mtx);
 			return checkret(ret_buffer);
 		}
+		pthread_mutex_unlock(&f->mtx);
 		return checkret(0);
 	}
 
-	return checkret(stfl_getkv_by_name_str(f->root, name ? name : "", 0));
+	{
+		const char * tmpstr = stfl_getkv_by_name_str(f->root, name ? name : "", 0);
+		pthread_mutex_unlock(&f->mtx);
+		return checkret(tmpstr);
+	}
 }
 
 void stfl_set(struct stfl_form *f, const char *name, const char *value)
 {
+	pthread_mutex_lock(&f->mtx);
 	stfl_setkv_by_name_str(f->root, name ? name : "", value ? value : "");
+	pthread_mutex_unlock(&f->mtx);
 }
 
 const char *stfl_get_focus(struct stfl_form *f)
 {
-	struct stfl_widget *fw = stfl_widget_by_id(f->root, f->current_focus_id);
-	return checkret(fw ? fw->name : 0);
+	struct stfl_widget *fw;
+	const char * tmpstr;
+	pthread_mutex_lock(&f->mtx);
+	fw = stfl_widget_by_id(f->root, f->current_focus_id);
+	tmpstr = checkret(fw ? fw->name : 0);
+	pthread_mutex_unlock(&f->mtx);
+	return tmpstr;
 }
 
 void stfl_set_focus(struct stfl_form *f, const char *name)
 {
-	struct stfl_widget *fw = stfl_widget_by_name(f->root, name ? name : "");
+	struct stfl_widget *fw;
+	pthread_mutex_lock(&f->mtx);
+	fw = stfl_widget_by_name(f->root, name ? name : "");
 	stfl_switch_focus(0, fw, f);
+	pthread_mutex_unlock(&f->mtx);
 }
 
 const char *stfl_quote(const char *text)
@@ -130,10 +152,12 @@ const char *stfl_dump(struct stfl_form *f, const char *name, const char *prefix,
 {
 	static char *last_ret = 0;
 	struct stfl_widget *w;
+	pthread_mutex_lock(&f->mtx);
 	w = name && *name ? stfl_widget_by_name(f->root, name) : f->root;
 	if (last_ret)
 		free(last_ret);
 	last_ret = stfl_widget_dump(w, prefix ? prefix : "", focus ? f->current_focus_id : 0);
+	pthread_mutex_unlock(&f->mtx);
 	return checkret(last_ret);
 }
 
@@ -226,8 +250,12 @@ static void stfl_modify_append(struct stfl_widget *w, struct stfl_widget *n)
 
 void stfl_modify(struct stfl_form *f, const char *name, const char *mode, const char *text)
 {
-	struct stfl_widget *w = stfl_widget_by_name(f->root, name ? name : "");
 	struct stfl_widget *n = stfl_parser(text ? text : "");
+	struct stfl_widget *w;
+
+	pthread_mutex_lock(&f->mtx);
+	
+	w = stfl_widget_by_name(f->root, name ? name : "");
 
 	mode = mode ? mode : "";
 
@@ -296,6 +324,7 @@ void stfl_modify(struct stfl_form *f, const char *name, const char *mode, const 
 
 finish:
 	stfl_check_setfocus(f, f->root);
+	pthread_mutex_unlock(&f->mtx);
 	return;
 }
 
