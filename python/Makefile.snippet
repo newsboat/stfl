@@ -18,7 +18,7 @@
 #
 
 
-PYTHON_VERSION = $(shell python -V 2>&1 | cut -f2 -d' ')
+PYTHON_VERSION = $(shell python -V 2>&1 | cut -f2 -d' ' | cut -f1-2 -d'.')
 
 all: python/_stfl.so python/stfl.py python/stfl.pyc
 
