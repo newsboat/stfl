@@ -445,6 +445,32 @@ void stfl_form_event(struct stfl_form *f, char *event)
 	*ep = e;
 }
 
+static struct stfl_widget* stfl_gather_focus_widget(struct stfl_form* f) {
+	struct stfl_widget *fw = stfl_widget_by_id(f->root, f->current_focus_id);
+
+	if (fw == 0)
+	{
+		fw = f->root;
+		while (fw)
+		{
+			if (fw->allow_focus)
+				break;
+
+			if (fw->first_child)
+				fw = fw->first_child;
+			else
+			if (fw->next_sibling)
+				fw = fw->next_sibling;
+			else
+				fw = fw->parent ? fw->parent->next_sibling : 0;
+		}
+
+		if (fw && fw->type->f_enter)
+			fw->type->f_enter(fw, f);
+	}
+	return fw;
+}
+
 void stfl_form_run(struct stfl_form *f, int timeout)
 {
 	pthread_mutex_lock(&f->mtx);
@@ -475,29 +501,7 @@ void stfl_form_run(struct stfl_form *f, int timeout)
 
 	f->root->type->f_prepare(f->root, f);
 
-	struct stfl_widget *fw = stfl_widget_by_id(f->root, f->current_focus_id);
-
-	if (fw == 0)
-	{
-		fw = f->root;
-		while (fw)
-		{
-			if (fw->allow_focus)
-				break;
-
-			if (fw->first_child)
-				fw = fw->first_child;
-			else
-			if (fw->next_sibling)
-				fw = fw->next_sibling;
-			else
-				fw = fw->parent ? fw->parent->next_sibling : 0;
-		}
-
-		if (fw && fw->type->f_enter)
-			fw->type->f_enter(fw, f);
-	}
-
+	struct stfl_widget *fw = stfl_gather_focus_widget(f);
 	f->current_focus_id = fw ? fw->id : 0;
 
 	getbegyx(stdscr, f->root->y, f->root->x);
@@ -514,7 +518,15 @@ void stfl_form_run(struct stfl_form *f, int timeout)
 
 	wtimeout(stdscr, timeout == 0 ? -1 : timeout);
 	wmove(stdscr, f->cursor_y, f->cursor_x);
+
+	pthread_mutex_unlock(&f->mtx);
 	int ch = wgetch(stdscr);
+	pthread_mutex_lock(&f->mtx);
+
+	/* fw may be invalid, regather it */
+	fw = stfl_gather_focus_widget(f);
+	f->current_focus_id = fw ? fw->id : 0;
+
 	struct stfl_widget *w = fw;
 
 	if (ch == ERR) {
