@@ -19,7 +19,7 @@
 
 include Makefile.cfg
 
-CFLAGS += -I. -Wall -O0 -ggdb
+CFLAGS += -I. -Wall -O0 -ggdb -fPIC
 LDLIBS += -lcurses
 
 all: libstfl.a example
