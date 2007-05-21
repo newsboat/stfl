@@ -96,6 +96,10 @@ static int wt_input_process(struct stfl_widget *w, struct stfl_widget *fw, struc
 	int pos = stfl_widget_getkv_int(w, "pos", 0);
 	const char *text = stfl_widget_getkv_str(w, "text", "");
 	int text_len = strlen(text);
+	int modal = stfl_widget_getkv_int(w, "modal", 0);
+
+	if (modal && ((ch == '\t') || (ch == KEY_LEFT && pos <= 0) || (ch == KEY_RIGHT && pos >= text_len) || (ch == KEY_UP) || (ch == KEY_DOWN)))
+		return 1;
 
 	if (ch == KEY_LEFT && pos > 0) {
 		stfl_widget_setkv_int(w, "pos", pos-1);

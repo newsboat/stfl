@@ -313,6 +313,10 @@ supported by this widget:
 		The offset of the text displayed in the input box
 		(when the text is larger then the input box).
 
+	modal
+		As long as this variable is set to 1 the widget doesn't
+		give away the focus once it got it.
+
 table
 ~~~~~
 
