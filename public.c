@@ -23,20 +23,22 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
+#include <wchar.h>
 
 int stfl_api_allow_null_pointers = 1;
 
-static const char *checkret(const char *txt)
+static const wchar_t *checkret(const wchar_t *txt)
 {
 	if (!stfl_api_allow_null_pointers && !txt)
-		return "";
+		return L"";
 	return txt;
 }
 
-struct stfl_form *stfl_create(const char *text)
+struct stfl_form *stfl_create(const wchar_t *text)
 {
 	struct stfl_form *f = stfl_form_new();
-	f->root = stfl_parser(text ? text : "");
+	f->root = stfl_parser(text ? text : L"");
 	stfl_check_setfocus(f, f->root);
 	return f;
 }
@@ -46,7 +48,7 @@ void stfl_free(struct stfl_form *f)
 	stfl_form_free(f);
 }
 
-const char *stfl_run(struct stfl_form *f, int timeout)
+const wchar_t *stfl_run(struct stfl_form *f, int timeout)
 {
 	stfl_form_run(f, timeout);
 	return checkret(f->event);
@@ -57,47 +59,47 @@ void stfl_reset()
 	stfl_form_reset();
 }
 
-const char *stfl_get(struct stfl_form *f, const char *name)
+const wchar_t *stfl_get(struct stfl_form *f, const wchar_t *name)
 {
-	char *pseudovar_sep = name ? strchr(name, ':') : 0;
+	wchar_t *pseudovar_sep = name ? wcschr(name, L':') : 0;
 
 	pthread_mutex_lock(&f->mtx);
 
 	if (pseudovar_sep)
 	{
-		char w_name[pseudovar_sep-name+1];
-		memcpy(w_name, name, pseudovar_sep-name);
+		wchar_t w_name[pseudovar_sep-name+1];
+		wmemcpy(w_name, name, pseudovar_sep-name);
 		w_name[pseudovar_sep-name] = 0;
 
 		struct stfl_widget *w = stfl_widget_by_name(f->root, w_name);
-		static char ret_buffer[16];
+		static wchar_t ret_buffer[16];
 
-		if (!strcmp(pseudovar_sep+1, "x")) {
-			snprintf(ret_buffer, 16, "%d", w->x);
+		if (!wcscmp(pseudovar_sep+1, L"x")) {
+			swprintf(ret_buffer, 16, L"%d", w->x);
 			pthread_mutex_unlock(&f->mtx);
 			return checkret(ret_buffer);
 		}
-		if (!strcmp(pseudovar_sep+1, "y")) {
-			snprintf(ret_buffer, 16, "%d", w->y);
+		if (!wcscmp(pseudovar_sep+1, L"y")) {
+			swprintf(ret_buffer, 16, L"%d", w->y);
 			pthread_mutex_unlock(&f->mtx);
 			return checkret(ret_buffer);
 		}
-		if (!strcmp(pseudovar_sep+1, "w")) {
-			snprintf(ret_buffer, 16, "%d", w->w);
+		if (!wcscmp(pseudovar_sep+1, L"w")) {
+			swprintf(ret_buffer, 16, L"%d", w->w);
 			pthread_mutex_unlock(&f->mtx);
 			return checkret(ret_buffer);
 		}
-		if (!strcmp(pseudovar_sep+1, "h")) {
-			snprintf(ret_buffer, 16, "%d", w->h);
+		if (!wcscmp(pseudovar_sep+1, L"h")) {
+			swprintf(ret_buffer, 16, L"%d", w->h);
 			return checkret(ret_buffer);
 		}
-		if (!strcmp(pseudovar_sep+1, "minw")) {
-			snprintf(ret_buffer, 16, "%d", w->min_w);
+		if (!wcscmp(pseudovar_sep+1, L"minw")) {
+			swprintf(ret_buffer, 16, L"%d", w->min_w);
 			pthread_mutex_unlock(&f->mtx);
 			return checkret(ret_buffer);
 		}
-		if (!strcmp(pseudovar_sep+1, "minh")) {
-			snprintf(ret_buffer, 16, "%d", w->min_h);
+		if (!wcscmp(pseudovar_sep+1, L"minh")) {
+			swprintf(ret_buffer, 16, L"%d", w->min_h);
 			pthread_mutex_unlock(&f->mtx);
 			return checkret(ret_buffer);
 		}
@@ -106,23 +108,23 @@ const char *stfl_get(struct stfl_form *f, const char *name)
 	}
 
 	{
-		const char * tmpstr = stfl_getkv_by_name_str(f->root, name ? name : "", 0);
+		const wchar_t * tmpstr = stfl_getkv_by_name_str(f->root, name ? name : L"", 0);
 		pthread_mutex_unlock(&f->mtx);
 		return checkret(tmpstr);
 	}
 }
 
-void stfl_set(struct stfl_form *f, const char *name, const char *value)
+void stfl_set(struct stfl_form *f, const wchar_t *name, const wchar_t *value)
 {
 	pthread_mutex_lock(&f->mtx);
-	stfl_setkv_by_name_str(f->root, name ? name : "", value ? value : "");
+	stfl_setkv_by_name_str(f->root, name ? name : L"", value ? value : L"");
 	pthread_mutex_unlock(&f->mtx);
 }
 
-const char *stfl_get_focus(struct stfl_form *f)
+const wchar_t *stfl_get_focus(struct stfl_form *f)
 {
 	struct stfl_widget *fw;
-	const char * tmpstr;
+	const wchar_t * tmpstr;
 	pthread_mutex_lock(&f->mtx);
 	fw = stfl_widget_by_id(f->root, f->current_focus_id);
 	tmpstr = checkret(fw ? fw->name : 0);
@@ -130,33 +132,33 @@ const char *stfl_get_focus(struct stfl_form *f)
 	return tmpstr;
 }
 
-void stfl_set_focus(struct stfl_form *f, const char *name)
+void stfl_set_focus(struct stfl_form *f, const wchar_t *name)
 {
 	struct stfl_widget *fw;
 	pthread_mutex_lock(&f->mtx);
-	fw = stfl_widget_by_name(f->root, name ? name : "");
+	fw = stfl_widget_by_name(f->root, name ? name : L"");
 	stfl_switch_focus(0, fw, f);
 	pthread_mutex_unlock(&f->mtx);
 }
 
-const char *stfl_quote(const char *text)
+const wchar_t *stfl_quote(const wchar_t *text)
 {
-	static char *last_ret = 0;
+	static wchar_t *last_ret = 0;
 	if (last_ret)
 		free(last_ret);
-	last_ret = stfl_quote_backend(text ? text : "");
+	last_ret = stfl_quote_backend(text ? text : L"");
 	return checkret(last_ret);
 }
 
-const char *stfl_dump(struct stfl_form *f, const char *name, const char *prefix, int focus)
+const wchar_t *stfl_dump(struct stfl_form *f, const wchar_t *name, const wchar_t *prefix, int focus)
 {
-	static char *last_ret = 0;
+	static wchar_t *last_ret = 0;
 	struct stfl_widget *w;
 	pthread_mutex_lock(&f->mtx);
 	w = name && *name ? stfl_widget_by_name(f->root, name) : f->root;
 	if (last_ret)
 		free(last_ret);
-	last_ret = stfl_widget_dump(w, prefix ? prefix : "", focus ? f->current_focus_id : 0);
+	last_ret = stfl_widget_dump(w, prefix ? prefix : L"", focus ? f->current_focus_id : 0);
 	pthread_mutex_unlock(&f->mtx);
 	return checkret(last_ret);
 }
@@ -248,24 +250,24 @@ static void stfl_modify_append(struct stfl_widget *w, struct stfl_widget *n)
 	w->last_child = last_n;
 }
 
-void stfl_modify(struct stfl_form *f, const char *name, const char *mode, const char *text)
+void stfl_modify(struct stfl_form *f, const wchar_t *name, const wchar_t *mode, const wchar_t *text)
 {
-	struct stfl_widget *n = stfl_parser(text ? text : "");
+	struct stfl_widget *n = stfl_parser(text ? text : L"");
 	struct stfl_widget *w;
 
 	pthread_mutex_lock(&f->mtx);
 	
-	w = stfl_widget_by_name(f->root, name ? name : "");
+	w = stfl_widget_by_name(f->root, name ? name : L"");
 
-	mode = mode ? mode : "";
+	mode = mode ? mode : L"";
 
-	if (!strcmp(mode, "replace")) {
+	if (!wcscmp(mode, L"replace")) {
 		stfl_modify_after(w, n);
 		stfl_widget_free(w);
 		goto finish;
 	}
 
-	if (!strcmp(mode, "replace_inner")) {
+	if (!wcscmp(mode, L"replace_inner")) {
 		while (w->first_child)
 			stfl_widget_free(w->first_child);
 		stfl_modify_insert(w, n->first_child);
@@ -274,48 +276,48 @@ void stfl_modify(struct stfl_form *f, const char *name, const char *mode, const 
 		goto finish;
 	}
 
-	if (!strcmp(mode, "insert")) {
+	if (!wcscmp(mode, L"insert")) {
 		stfl_modify_insert(w, n);
 		goto finish;
 	}
 
-	if (!strcmp(mode, "insert_inner")) {
+	if (!wcscmp(mode, L"insert_inner")) {
 		stfl_modify_insert(w, n->first_child);
 		n->first_child = n->last_child = 0;
 		stfl_widget_free(n);
 		goto finish;
 	}
 
-	if (!strcmp(mode, "append")) {
+	if (!wcscmp(mode, L"append")) {
 		stfl_modify_append(w, n);
 		goto finish;
 	}
 
-	if (!strcmp(mode, "append_inner")) {
+	if (!wcscmp(mode, L"append_inner")) {
 		stfl_modify_append(w, n->first_child);
 		n->first_child = n->last_child = 0;
 		stfl_widget_free(n);
 		goto finish;
 	}
 
-	if (!strcmp(mode, "before")) {
+	if (!wcscmp(mode, L"before")) {
 		stfl_modify_before(w, n);
 		goto finish;
 	}
 
-	if (!strcmp(mode, "before_inner")) {
+	if (!wcscmp(mode, L"before_inner")) {
 		stfl_modify_before(w, n->first_child);
 		n->first_child = n->last_child = 0;
 		stfl_widget_free(n);
 		goto finish;
 	}
 
-	if (!strcmp(mode, "after")) {
+	if (!wcscmp(mode, L"after")) {
 		stfl_modify_after(w, n);
 		goto finish;
 	}
 
-	if (!strcmp(mode, "after_inner")) {
+	if (!wcscmp(mode, L"after_inner")) {
 		stfl_modify_after(w, n->first_child);
 		n->first_child = n->last_child = 0;
 		stfl_widget_free(n);
@@ -328,18 +330,18 @@ finish:
 	return;
 }
 
-const char *stfl_lookup(struct stfl_form *f, const char *path, const char *newname)
+const wchar_t *stfl_lookup(struct stfl_form *f, const wchar_t *path, const wchar_t *newname)
 {
 	return checkret(0);
 }
 
-const char *stfl_error()
+const wchar_t *stfl_error()
 {
 	abort();
 	return checkret(0);
 }
 
-void stfl_error_action(const char *mode)
+void stfl_error_action(const wchar_t *mode)
 {
 	abort();
 	return;

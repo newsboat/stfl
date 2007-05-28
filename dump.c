@@ -19,8 +19,6 @@
  *  dump.c: Create STFL code from a widget tree
  */
 
-#define _GNU_SOURCE
-
 #include "stfl_internals.h"
 
 #include <stdio.h>
@@ -29,11 +27,12 @@
 
 struct txtnode {
 	struct txtnode *prev;
-	char *value;
+	wchar_t *value;
 	int len;
 };
 
-static void newtxt(struct txtnode **o, const char *fmt, ...)
+static void newtxt(struct txtnode **o, const wchar_t *fmt, ...)
+		/* __attribute__ ((format (wprintf, 2, 3))) */
 {
 	struct txtnode *n = calloc(1, sizeof(struct txtnode));
 
@@ -42,44 +41,49 @@ static void newtxt(struct txtnode **o, const char *fmt, ...)
 
 	va_list ap;
 	va_start(ap, fmt);
-	vasprintf(&n->value, fmt, ap);
-	n->len = strlen(n->value);
+	wchar_t buf[4096];
+	vswprintf(buf,4096, fmt, ap);
+	n->value = wcsdup(buf);
+	if (n->value)
+		n->len = wcslen(n->value);
+	else
+		n->len = 0;
 	va_end(ap);
 }
 
-static void myquote(struct txtnode **txt, const char *text)
+static void myquote(struct txtnode **txt, const wchar_t *text)
 {
-	char q[2] = {'"', 0};
+	wchar_t q[2] = {L'"', 0};
 	int segment_len;
 
-	if (strcspn(text, "'") > strcspn(text, "\""))
-		q[0] = '\'';
+	if (wcscspn(text, L"'") > wcscspn(text, L"\""))
+		q[0] = L'\'';
 
 	while (*text) {
-		segment_len = strcspn(text, q);
-		newtxt(txt, "%c%.*s%c", q[0], segment_len, text, q[0]);
-		q[0] = q[0] == '"' ? '\'' : '"';
+		segment_len = wcscspn(text, q);
+		newtxt(txt, L"%c%.*ls%c", q[0], segment_len, text, q[0]);
+		q[0] = q[0] == L'"' ? L'\'' : L'"';
 		text += segment_len;
 	}
 }
 
-static void mydump(struct stfl_widget *w, const char *prefix, int focus_id, struct txtnode **txt)
+static void mydump(struct stfl_widget *w, const wchar_t *prefix, int focus_id, struct txtnode **txt)
 {
-	newtxt(txt, "{%s%s", w->id == focus_id ? "!" : "", w->type->name);
+	newtxt(txt, L"{%ls%ls", w->id == focus_id ? L"!" : L"", w->type->name);
 
 	if (w->cls)
-		newtxt(txt, "#%s", w->cls);
+		newtxt(txt, L"#%ls", w->cls);
 
 	if (w->name)
-		newtxt(txt, "[%s%s]", prefix, w->name);
+		newtxt(txt, L"[%ls%ls]", prefix, w->name);
 
 	struct stfl_kv *kv = w->kv_list;
 	while (kv)
 	{
 		if (kv->name)
-			newtxt(txt, " %s[%s%s]:", kv->key, prefix, kv->name);
+			newtxt(txt, L" %ls[%ls%ls]:", kv->key, prefix, kv->name);
 		else
-			newtxt(txt, " %s:", kv->key);
+			newtxt(txt, L" %ls:", kv->key);
 
 		myquote(txt, kv->value);
 		kv = kv->next;
@@ -91,10 +95,10 @@ static void mydump(struct stfl_widget *w, const char *prefix, int focus_id, stru
 		c = c->next_sibling;
 	}
 
-	newtxt(txt, "}");
+	newtxt(txt, L"}");
 }
 
-static char *txt2string(struct txtnode *txt)
+static wchar_t *txt2string(struct txtnode *txt)
 {
 	int string_len = 0;
 	struct txtnode *t, *prev;
@@ -102,13 +106,13 @@ static char *txt2string(struct txtnode *txt)
 	for (t=txt; t; t=t->prev)
 		string_len += t->len;
 
-	char *string = malloc(string_len+1);
+	wchar_t *string = malloc(sizeof(wchar_t)*(string_len+1));
 	int i = string_len;
 
 	for (t=txt; t; t=prev)
 	{
 		i -= t->len;
-		memcpy(string+i, t->value, t->len);
+		wmemcpy(string+i, t->value, t->len);
 
 		prev = t->prev;
 		free(t->value);
@@ -119,14 +123,14 @@ static char *txt2string(struct txtnode *txt)
 	return string;
 }
 
-char *stfl_quote_backend(const char *text)
+wchar_t *stfl_quote_backend(const wchar_t *text)
 {
 	struct txtnode *txt = 0;
 	myquote(&txt, text);
 	return txt2string(txt);
 }
 
-char *stfl_widget_dump(struct stfl_widget *w, const char *prefix, int focus_id)
+wchar_t *stfl_widget_dump(struct stfl_widget *w, const wchar_t *prefix, int focus_id)
 {
 	struct txtnode *txt = 0;
 	mydump(w, prefix, focus_id, &txt);

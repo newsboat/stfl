@@ -418,6 +418,18 @@ The functions which may return an undefined value will return a null-pointer
 in C. All string parameters which are null-pointers are interpreted as they
 where empty strings.
 
+Unicode Support
+~~~~~~~~~~~~~~~
+
+The STFL C Library handles all strings as wide character strings (wchar_t*). So
+the STFL library itself has complete Unicode support.
+
+All current scripting language bindings convert all strings passed between STFL
+and the scripting language to UTF-8.
+
+Programs using STFL directly might use the STFL "ipool" API for easy conversion
+betweed wide characters and other encodings.
+
 SPL API Notes
 ~~~~~~~~~~~~~
 

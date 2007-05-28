@@ -19,23 +19,22 @@
  *  shortnames.i: Use short function names in SWIG bindings
  */
 
-%rename(create) stfl_create;
-// %rename(free) stfl_free;
+%rename(create) stfl_create_wrapper;
+%rename(run) stfl_run_wrapper;
 
-%rename(run) stfl_run;
+%rename(get) stfl_get_wrapper;
+%rename(set) stfl_set_wrapper;
+
+%rename(get_focus) stfl_get_focus_wrapper;
+%rename(set_focus) stfl_set_focus_wrapper;
+
+%rename(quote) stfl_quote_wrapper;
+%rename(dump) stfl_dump_wrapper;
+%rename(modify) stfl_modify_wrapper;
+%rename(lookup) stfl_lookup_wrapper;
+
+%rename(error) stfl_error_wrapper;
+%rename(error_action) stfl_error_action_wrapper;
+
 %rename(reset) stfl_reset;
-
-%rename(get) stfl_get;
-%rename(set) stfl_set;
-
-%rename(get_focus) stfl_get_focus;
-%rename(set_focus) stfl_set_focus;
-
-%rename(quote) stfl_quote;
-%rename(dump) stfl_dump;
-%rename(modify) stfl_modify;
-%rename(lookup) stfl_lookup;
-
-%rename(error) stfl_error;
-%rename(error_action) stfl_error_action;
 

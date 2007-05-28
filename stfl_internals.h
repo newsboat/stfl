@@ -27,7 +27,7 @@ extern "C" {
 #endif
 
 #include "stfl.h"
-#include <curses.h>
+#include <ncursesw/ncurses.h>
 #include <pthread.h>
 
 struct stfl_widget_type;
@@ -35,7 +35,7 @@ struct stfl_kv;
 struct stfl_widget;
 
 struct stfl_widget_type {
-	char *name;
+	wchar_t *name;
 
 	void (*f_init)(struct stfl_widget *w);
 	void (*f_done)(struct stfl_widget *w);
@@ -45,13 +45,13 @@ struct stfl_widget_type {
 
 	void (*f_prepare)(struct stfl_widget *w, struct stfl_form *f);
 	void (*f_draw)(struct stfl_widget *w, struct stfl_form *f, WINDOW *win);
-	int (*f_process)(struct stfl_widget *w, struct stfl_widget *fw, struct stfl_form *f, int ch);
+	int (*f_process)(struct stfl_widget *w, struct stfl_widget *fw, struct stfl_form *f, wchar_t ch, int is_function_key);
 };
 
 struct stfl_kv {
 	struct stfl_kv *next;
 	struct stfl_widget *widget;
-	char *key, *value, *name;
+	wchar_t *key, *value, *name;
 	int id;
 };
 
@@ -66,12 +66,12 @@ struct stfl_widget {
 	int parser_indent, allow_focus;
 	int setfocus;
 	void *internal_data;
-	char *name, *cls;
+	wchar_t *name, *cls;
 };
 
 struct stfl_event {
 	struct stfl_event *next;
-	char *event;
+	wchar_t *event;
 };
 
 struct stfl_form {
@@ -79,7 +79,7 @@ struct stfl_form {
 	int current_focus_id;
 	int cursor_x, cursor_y;
 	struct stfl_event *event_queue;
-	char *event;
+	wchar_t *event;
 	pthread_mutex_t mtx;
 };
 
@@ -95,26 +95,26 @@ extern struct stfl_widget_type stfl_widget_type_list;
 extern struct stfl_widget_type stfl_widget_type_listitem;
 extern struct stfl_widget_type stfl_widget_type_textview;
 
-extern struct stfl_widget *stfl_widget_new(const char *type);
+extern struct stfl_widget *stfl_widget_new(const wchar_t *type);
 extern void stfl_widget_free(struct stfl_widget *w);
 
-extern struct stfl_kv *stfl_widget_setkv_int(struct stfl_widget *w, const char *key, int value);
-extern struct stfl_kv *stfl_widget_setkv_str(struct stfl_widget *w, const char *key, const char *value);
+extern struct stfl_kv *stfl_widget_setkv_int(struct stfl_widget *w, const wchar_t *key, int value);
+extern struct stfl_kv *stfl_widget_setkv_str(struct stfl_widget *w, const wchar_t *key, const wchar_t *value);
 
-extern struct stfl_kv *stfl_setkv_by_name_int(struct stfl_widget *w, const char *name, int value);
-extern struct stfl_kv *stfl_setkv_by_name_str(struct stfl_widget *w, const char *name, const char *value);
+extern struct stfl_kv *stfl_setkv_by_name_int(struct stfl_widget *w, const wchar_t *name, int value);
+extern struct stfl_kv *stfl_setkv_by_name_str(struct stfl_widget *w, const wchar_t *name, const wchar_t *value);
 
-extern struct stfl_kv *stfl_widget_getkv(struct stfl_widget *w, const char *key);
-extern int stfl_widget_getkv_int(struct stfl_widget *w, const char *key, int defval);
-extern const char *stfl_widget_getkv_str(struct stfl_widget *w, const char *key, const char *defval);
+extern struct stfl_kv *stfl_widget_getkv(struct stfl_widget *w, const wchar_t *key);
+extern int stfl_widget_getkv_int(struct stfl_widget *w, const wchar_t *key, int defval);
+extern const wchar_t *stfl_widget_getkv_str(struct stfl_widget *w, const wchar_t *key, const wchar_t *defval);
 
-extern int stfl_getkv_by_name_int(struct stfl_widget *w, const char *name, int defval);
-extern const char *stfl_getkv_by_name_str(struct stfl_widget *w, const char *name, const char *defval);
+extern int stfl_getkv_by_name_int(struct stfl_widget *w, const wchar_t *name, int defval);
+extern const wchar_t *stfl_getkv_by_name_str(struct stfl_widget *w, const wchar_t *name, const wchar_t *defval);
 
-extern struct stfl_widget *stfl_widget_by_name(struct stfl_widget *w, const char *name);
+extern struct stfl_widget *stfl_widget_by_name(struct stfl_widget *w, const wchar_t *name);
 extern struct stfl_widget *stfl_widget_by_id(struct stfl_widget *w, int id);
 
-extern struct stfl_kv *stfl_kv_by_name(struct stfl_widget *w, const char *name);
+extern struct stfl_kv *stfl_kv_by_name(struct stfl_widget *w, const wchar_t *name);
 extern struct stfl_kv *stfl_kv_by_id(struct stfl_widget *w, int id);
 
 extern struct stfl_widget *stfl_find_child_tree(struct stfl_widget *w, struct stfl_widget *c);
@@ -125,20 +125,20 @@ extern int stfl_focus_prev(struct stfl_widget *w, struct stfl_widget *old_fw, st
 extern int stfl_focus_next(struct stfl_widget *w, struct stfl_widget *old_fw, struct stfl_form *f);
 
 extern struct stfl_form *stfl_form_new();
-extern void stfl_form_event(struct stfl_form *f, char *event);
+extern void stfl_form_event(struct stfl_form *f, wchar_t *event);
 extern void stfl_form_run(struct stfl_form *f, int timeout);
 extern void stfl_form_reset();
 extern void stfl_form_free(struct stfl_form *f);
 
 extern void stfl_check_setfocus(struct stfl_form *f, struct stfl_widget *w);
 
-extern struct stfl_widget *stfl_parser(const char *text);
+extern struct stfl_widget *stfl_parser(const wchar_t *text);
 extern struct stfl_widget *stfl_parser_file(const char *filename);
 
-extern char *stfl_quote_backend(const char *text);
-extern char *stfl_widget_dump(struct stfl_widget *w, const char *prefix, int focus_id);
+extern wchar_t *stfl_quote_backend(const wchar_t *text);
+extern wchar_t *stfl_widget_dump(struct stfl_widget *w, const wchar_t *prefix, int focus_id);
 
-extern void stfl_style(WINDOW *win, const char *style);
+extern void stfl_style(WINDOW *win, const wchar_t *style);
 extern void stfl_widget_style(struct stfl_widget *w, struct stfl_form *f, WINDOW *win);
 
 #ifdef __cplusplus

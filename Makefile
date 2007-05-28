@@ -19,8 +19,8 @@
 
 include Makefile.cfg
 
-CFLAGS += -I. -Wall -O0 -ggdb -fPIC
-LDLIBS += -lcurses
+CFLAGS += -I. -Wall -O0 -ggdb -D_GNU_SOURCE -fPIC
+LDLIBS += -lncursesw
 
 all: libstfl.a example
 
@@ -28,7 +28,7 @@ example: LDFLAGS += -L.
 example: LDLIBS += -lstfl
 example: libstfl.a
 
-libstfl.a: public.o base.o parser.o dump.o style.o \
+libstfl.a: public.o base.o parser.o dump.o style.o iconv.o \
            $(patsubst %.c,%.o,$(wildcard widgets/*.c))
 	rm -f $@
 	ar qc $@ $^
@@ -48,10 +48,10 @@ Makefile.deps: *.c *.h
 	$(CC) -MM *.c > Makefile.deps
 
 install: all
-	mkdir -p $(prefix)/lib
-	mkdir -p $(prefix)/include
-	install -m 644 libstfl.a $(prefix)/lib/
-	install -m 644 stfl.h $(prefix)/include/
+	mkdir -p $(DESTDIR)$(prefix)/lib
+	mkdir -p $(DESTDIR)$(prefix)/include
+	install -m 644 libstfl.a $(DESTDIR)$(prefix)/lib/
+	install -m 644 stfl.h $(DESTDIR)$(prefix)/include/
 
 ifeq ($(FOUND_SPL),1)
 include spl/Makefile.snippet

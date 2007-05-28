@@ -26,12 +26,12 @@
  * Language/Library (STFL).
  */
 
-#define _GNU_SOURCE
-
 #include "stfl.h"
 
 #include <spl.h>
 #include <stdlib.h>
+
+static struct stfl_ipool *ipool = 0;
 
 extern void SPL_ABI(spl_mod_stfl_init)(struct spl_vm *vm, struct spl_module *mod, int restore);
 extern void SPL_ABI(spl_mod_stfl_done)(struct spl_vm *vm, struct spl_module *mod);
@@ -60,7 +60,7 @@ static struct stfl_form *clib_get_stfl_form(struct spl_task *task)
 
 static struct spl_node *spl_new_nullable_ascii(const char *text)
 {
-	return text ? SPL_NEW_STRING(spl_utf8_import(text, "ascii")) : spl_get(0);
+	return text ? SPL_NEW_STRING_DUP(text) : spl_get(0);
 }
 
 /**
@@ -78,7 +78,8 @@ static struct spl_node *handler_stfl_create(struct spl_task *task, void *data)
 {
 	struct spl_node *n = SPL_NEW_STRING_DUP("STFL Form");
 	n->hnode_name = strdup("stfl_form");
-	n->hnode_data = stfl_create(spl_clib_get_string(task));;
+	n->hnode_data = stfl_create(stfl_ipool_towc(ipool, spl_clib_get_string(task)));;
+	stfl_ipool_flush(ipool);
 	return n;
 }
 
@@ -89,7 +90,9 @@ static struct spl_node *handler_stfl_create(struct spl_task *task, void *data)
 static struct spl_node *handler_stfl_run(struct spl_task *task, void *data)
 {
 	struct stfl_form *f = clib_get_stfl_form(task);
-	return f ? spl_new_nullable_ascii(stfl_run(f, spl_clib_get_int(task))) : 0;
+	struct spl_node *ret = f ? spl_new_nullable_ascii(stfl_ipool_fromwc(ipool, stfl_run(f, spl_clib_get_int(task)))) : 0;
+	stfl_ipool_flush(ipool);
+	return ret;
 }
 
 /**
@@ -109,7 +112,9 @@ static struct spl_node *handler_stfl_reset(struct spl_task *task, void *data)
 static struct spl_node *handler_stfl_get(struct spl_task *task, void *data)
 {
 	struct stfl_form *f = clib_get_stfl_form(task);
-	return f ? spl_new_nullable_ascii(stfl_get(f, spl_clib_get_string(task))) : 0;
+	struct spl_node *ret = f ? spl_new_nullable_ascii(stfl_ipool_fromwc(ipool, stfl_get(f, stfl_ipool_towc(ipool, spl_clib_get_string(task))))) : 0;
+	stfl_ipool_flush(ipool);
+	return ret;
 }
 
 /**
@@ -121,7 +126,8 @@ static struct spl_node *handler_stfl_set(struct spl_task *task, void *data)
 	struct stfl_form *f = clib_get_stfl_form(task);
 	char *name = spl_clib_get_string(task);
 	char *value = spl_clib_get_string(task);
-	stfl_set(f, name, value);
+	stfl_set(f, stfl_ipool_towc(ipool, name), stfl_ipool_towc(ipool, value));
+	stfl_ipool_flush(ipool);
 	return 0;
 }
 
@@ -132,7 +138,9 @@ static struct spl_node *handler_stfl_set(struct spl_task *task, void *data)
 static struct spl_node *handler_stfl_get_focus(struct spl_task *task, void *data)
 {
 	struct stfl_form *f = clib_get_stfl_form(task);
-	return f ? spl_new_nullable_ascii(stfl_get_focus(f)) : 0;
+	struct spl_node *ret = f ? spl_new_nullable_ascii(stfl_ipool_fromwc(ipool, stfl_get_focus(f))) : 0;
+	stfl_ipool_flush(ipool);
+	return ret;
 }
 
 /**
@@ -142,7 +150,8 @@ static struct spl_node *handler_stfl_get_focus(struct spl_task *task, void *data
 static struct spl_node *handler_stfl_set_focus(struct spl_task *task, void *data)
 {
 	struct stfl_form *f = clib_get_stfl_form(task);
-	stfl_set_focus(f, spl_clib_get_string(task));
+	stfl_set_focus(f, stfl_ipool_towc(ipool, spl_clib_get_string(task)));
+	stfl_ipool_flush(ipool);
 	return 0;
 }
 
@@ -152,8 +161,8 @@ static struct spl_node *handler_stfl_set_focus(struct spl_task *task, void *data
 // builtin stfl_quote(text)
 static struct spl_node *handler_stfl_quote(struct spl_task *task, void *data)
 {
-	const char *text = stfl_quote(spl_clib_get_string(task));
-	struct spl_node *n = spl_new_nullable_ascii(text);
+	struct spl_node *n = spl_new_nullable_ascii(stfl_ipool_fromwc(ipool, stfl_quote(stfl_ipool_towc(ipool, spl_clib_get_string(task)))));
+	stfl_ipool_flush(ipool);
 	return n;
 }
 
@@ -167,8 +176,9 @@ static struct spl_node *handler_stfl_dump(struct spl_task *task, void *data)
 	char *name = spl_clib_get_string(task);
 	char *prefix = spl_clib_get_string(task);
 	int focus = spl_clib_get_int(task);
-	const char *text = stfl_dump(f, name, prefix, focus);
+	const char *text = stfl_ipool_fromwc(ipool, stfl_dump(f, stfl_ipool_towc(ipool, name), stfl_ipool_towc(ipool, prefix), focus));
 	struct spl_node *n = spl_new_nullable_ascii(text);
+	stfl_ipool_flush(ipool);
 	return n;
 }
 
@@ -182,7 +192,8 @@ static struct spl_node *handler_stfl_modify(struct spl_task *task, void *data)
 	char *name = spl_clib_get_string(task);
 	char *mode = spl_clib_get_string(task);
 	char *text = spl_clib_get_string(task);
-	stfl_modify(f, name, mode, text);
+	stfl_modify(f, stfl_ipool_towc(ipool, name), stfl_ipool_towc(ipool, mode), stfl_ipool_towc(ipool, text));
+	stfl_ipool_flush(ipool);
 	return 0;
 }
 
@@ -195,7 +206,9 @@ static struct spl_node *handler_stfl_lookup(struct spl_task *task, void *data)
 	struct stfl_form *f = clib_get_stfl_form(task);
 	char *path = spl_clib_get_string(task);
 	char *newname = spl_clib_get_string(task);
-	return spl_new_nullable_ascii(stfl_lookup(f, path, newname));
+	struct spl_node *ret = spl_new_nullable_ascii(stfl_ipool_fromwc(ipool, stfl_lookup(f, stfl_ipool_towc(ipool, path), stfl_ipool_towc(ipool, newname))));
+	stfl_ipool_flush(ipool);
+	return ret;
 }
 
 /**
@@ -204,7 +217,9 @@ static struct spl_node *handler_stfl_lookup(struct spl_task *task, void *data)
 // builtin stfl_error()
 static struct spl_node *handler_stfl_error(struct spl_task *task, void *data)
 {
-	return spl_new_nullable_ascii(stfl_error());
+	struct spl_node *ret = spl_new_nullable_ascii(stfl_ipool_fromwc(ipool, stfl_error()));
+	stfl_ipool_flush(ipool);
+	return ret;
 }
 
 /**
@@ -214,12 +229,24 @@ static struct spl_node *handler_stfl_error(struct spl_task *task, void *data)
 static struct spl_node *handler_stfl_error_action(struct spl_task *task, void *data)
 {
 	char *mode = spl_clib_get_string(task);
-	stfl_error_action(mode);
+	stfl_error_action(stfl_ipool_towc(ipool, mode));
+	stfl_ipool_flush(ipool);
 	return 0;
+}
+
+static void destroy_ipool_atexit()
+{
+	stfl_ipool_destroy(ipool);
+	ipool = 0;
 }
 
 void SPL_ABI(spl_mod_stfl_init)(struct spl_vm *vm, struct spl_module *mod, int restore)
 {
+	if (!ipool) {
+		ipool = stfl_ipool_create("UTF8");
+		atexit(destroy_ipool_atexit);
+	}
+
 	spl_hnode_reg(vm, "stfl_form", handler_stfl_form_node, 0);
 
 	spl_clib_reg(vm, "stfl_create", handler_stfl_create, 0);

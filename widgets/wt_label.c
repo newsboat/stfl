@@ -26,35 +26,36 @@
 
 static void wt_label_prepare(struct stfl_widget *w, struct stfl_form *f)
 {
-	w->min_w = strlen(stfl_widget_getkv_str(w, "text", ""));
+	const wchar_t * text = stfl_widget_getkv_str(w, L"text", L"");
+	w->min_w = wcswidth(text, wcslen(text));
 	w->min_h = 1;
 }
 
 static void wt_label_draw(struct stfl_widget *w, struct stfl_form *f, WINDOW *win)
 {
-	const char * text;
-	char * fillup;
+	const wchar_t * text;
+	wchar_t * fillup;
 	unsigned int i;
 
 
 	stfl_widget_style(w, f, win);
 
-	text = stfl_widget_getkv_str(w,"text","");
+	text = stfl_widget_getkv_str(w,L"text",L"");
 
-	if (strlen(text) < w->w) {
-		fillup = alloca(w->w - strlen(text) + 1);
-		for (i=0;i < w->w - strlen(text);++i) {
-			fillup[i] = ' ';
+	if (wcswidth(text,wcslen(text)) < w->w) {
+		fillup = alloca(sizeof(wchar_t)*(w->w - wcswidth(text,wcslen(text)) + 1));
+		for (i=0;i < w->w - wcswidth(text,wcslen(text));++i) {
+			fillup[i] = L' ';
 		}
-		fillup[w->w - strlen(text)] = '\0';
-		mvwaddnstr(win, w->y, w->x + strlen(text), fillup, strlen(fillup));
+		fillup[w->w - wcswidth(text,wcslen(text))] = L'\0';
+		mvwaddnwstr(win, w->y, w->x + wcswidth(text,wcslen(text)), fillup, wcswidth(fillup,wcslen(fillup)));
 	}
 
-	mvwaddnstr(win, w->y, w->x, text, w->w);
+	mvwaddnwstr(win, w->y, w->x, text, w->w);
 }
 
 struct stfl_widget_type stfl_widget_type_label = {
-	"label",
+	L"label",
 	0, // f_init
 	0, // f_done
 	0, // f_enter 

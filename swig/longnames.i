@@ -16,39 +16,23 @@
  *  along with this program; if not, write to the Free Software
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- *  example.c: A little STFL example
+ *  shortnames.i: Use short function names in SWIG bindings
  */
 
-#include "stfl.h"
+%rename(stfl_create) stfl_create_wrapper;
+%rename(stfl_run) stfl_run_wrapper;
 
-#include <string.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <locale.h>
+%rename(stfl_get) stfl_get_wrapper;
+%rename(stfl_set) stfl_set_wrapper;
 
-int main()
-{
-	struct stfl_ipool *ipool = stfl_ipool_create("ISO8859-1");
-	struct stfl_form *f = stfl_create(L"<example.stfl>");
+%rename(stfl_get_focus) stfl_get_focus_wrapper;
+%rename(stfl_set_focus) stfl_set_focus_wrapper;
 
-	stfl_set(f, L"value_a", L"This is a little");
-	stfl_set(f, L"value_b", stfl_ipool_towc(ipool, "test for STFL!"));
-	stfl_ipool_flush(ipool);
+%rename(stfl_quote) stfl_quote_wrapper;
+%rename(stfl_dump) stfl_dump_wrapper;
+%rename(stfl_modify) stfl_modify_wrapper;
+%rename(stfl_lookup) stfl_lookup_wrapper;
 
-	const wchar_t *event = 0;
-	while (!event || wcscmp(event, L"ESC"))
-		event = stfl_run(f, 0);
-
-	stfl_reset();
-
-	printf("A: %ls\n", stfl_get(f, L"value_a"));
-	printf("B: %ls\n", stfl_get(f, L"value_b"));
-	printf("C: %s\n", stfl_ipool_fromwc(ipool, stfl_get(f, L"value_c")));
-	stfl_ipool_flush(ipool);
-
-	stfl_free(f);
-	stfl_ipool_destroy(ipool);
-
-	return 0;
-}
+%rename(stfl_error) stfl_error_wrapper;
+%rename(stfl_error_action) stfl_error_action_wrapper;
 

@@ -22,6 +22,8 @@
 #ifndef STFL_H
 #define STFL_H 1
 
+#include <wchar.h>
+
 #ifdef  __cplusplus
 extern "C" {
 #endif
@@ -29,26 +31,35 @@ extern "C" {
 extern int stfl_api_allow_null_pointers;
 
 struct stfl_form;
+struct stfl_ipool;
 
-extern struct stfl_form *stfl_create(const char *text);
+extern struct stfl_form *stfl_create(const wchar_t *text);
 extern void stfl_free(struct stfl_form *f);
 
-extern const char *stfl_run(struct stfl_form *f, int timeout);
+extern const wchar_t *stfl_run(struct stfl_form *f, int timeout);
 extern void stfl_reset();
 
-extern const char *stfl_get(struct stfl_form *f, const char *name);
-extern void stfl_set(struct stfl_form *f, const char *name, const char *value);
+extern const wchar_t * stfl_get(struct stfl_form *f, const wchar_t *name);
+extern void stfl_set(struct stfl_form *f, const wchar_t *name, const wchar_t *value);
 
-extern const char *stfl_get_focus(struct stfl_form *f);
-extern void stfl_set_focus(struct stfl_form *f, const char *name);
+extern const wchar_t *stfl_get_focus(struct stfl_form *f);
+extern void stfl_set_focus(struct stfl_form *f, const wchar_t *name);
 
-extern const char *stfl_quote(const char *text);
-extern const char *stfl_dump(struct stfl_form *f, const char *name, const char *prefix, int focus);
-extern void stfl_modify(struct stfl_form *f, const char *name, const char *mode, const char *text);
-extern const char *stfl_lookup(struct stfl_form *f, const char *path, const char *newname);
+extern const wchar_t *stfl_quote(const wchar_t *text);
+extern const wchar_t *stfl_dump(struct stfl_form *f, const wchar_t *name, const wchar_t *prefix, int focus);
 
-extern const char *stfl_error();
-extern void stfl_error_action(const char *mode);
+extern void stfl_modify(struct stfl_form *f, const wchar_t *name, const wchar_t *mode, const wchar_t *text);
+extern const wchar_t *stfl_lookup(struct stfl_form *f, const wchar_t *path, const wchar_t *newname);
+
+extern const wchar_t *stfl_error();
+extern void stfl_error_action(const wchar_t *mode);
+
+extern struct stfl_ipool *stfl_ipool_create(const char *code);
+extern void *stfl_ipool_add(struct stfl_ipool *pool, void *data);
+extern const wchar_t *stfl_ipool_towc(struct stfl_ipool *pool, const char *buf);
+extern const char *stfl_ipool_fromwc(struct stfl_ipool *pool, const wchar_t *buf);
+extern void stfl_ipool_flush(struct stfl_ipool *pool);
+extern void stfl_ipool_destroy(struct stfl_ipool *pool);
 
 #ifdef __cplusplus
 }

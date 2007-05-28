@@ -23,6 +23,7 @@
 
 #include <string.h>
 #include <stdlib.h>
+#include <wctype.h>
 
 static void wt_input_init(struct stfl_widget *w)
 {
@@ -31,10 +32,14 @@ static void wt_input_init(struct stfl_widget *w)
 
 static void fix_offset_pos(struct stfl_widget *w)
 {
-	int pos = stfl_widget_getkv_int(w, "pos", 0);
-	int offset = stfl_widget_getkv_int(w, "offset", 0);
-	int text_len = strlen(stfl_widget_getkv_str(w, "text", ""));
+	int pos = stfl_widget_getkv_int(w, L"pos", 0);
+	int offset = stfl_widget_getkv_int(w, L"offset", 0);
+	const wchar_t* text = stfl_widget_getkv_str(w, L"text", L"");
+	int text_len = wcslen(text);
 	int changed = 0;
+	int pos_width = 0;
+	int offset_width = 0;
+	int i;
 
 	if (pos > text_len) {
 		pos = text_len;
@@ -51,20 +56,25 @@ static void fix_offset_pos(struct stfl_widget *w)
 		changed = 1;
 	}
 
-	while (pos-offset >= w->w && w->w > 0) {
+	for (i=0;i<pos;++i) {
+		pos_width += wcwidth(text[i]);
+	}
+
+	while (text[offset] && pos-offset >= w->w && pos_width-offset_width >= w->w && w->w > 0) {
+		offset_width += wcwidth(text[offset]);
 		offset++;
 		changed = 1;
 	}
 
 	if (changed) {
-		stfl_widget_setkv_int(w, "pos", pos);
-		stfl_widget_setkv_int(w, "offset", offset);
+		stfl_widget_setkv_int(w, L"pos", pos);
+		stfl_widget_setkv_int(w, L"offset", offset);
 	}
 }
 
 static void wt_input_prepare(struct stfl_widget *w, struct stfl_form *f)
 {
-	int size = stfl_widget_getkv_int(w, "size", 5);
+	int size = stfl_widget_getkv_int(w, L"size", 5);
 
 	w->min_w = size;
 	w->min_h = 1;
@@ -74,55 +84,63 @@ static void wt_input_prepare(struct stfl_widget *w, struct stfl_form *f)
 
 static void wt_input_draw(struct stfl_widget *w, struct stfl_form *f, WINDOW *win)
 {
-	int pos = stfl_widget_getkv_int(w, "pos", 0);
-	int offset = stfl_widget_getkv_int(w, "offset", 0);
-	const char *text = stfl_widget_getkv_str(w, "text", "");
-	int i;
+	int pos = stfl_widget_getkv_int(w, L"pos", 0);
+	int offset = stfl_widget_getkv_int(w, L"offset", 0);
+	const wchar_t *text = stfl_widget_getkv_str(w, L"text", L"");
+	int pos_width = 0, offset_width = 0, i;
 
 	stfl_widget_style(w, f, win);
 
 	for (i=0; i<w->w; i++)
-		mvwaddch(win, w->y, w->x+i, ' ');
-	mvwaddnstr(win, w->y, w->x, text+offset, w->w);
+		mvwaddwstr(win, w->y, w->x+i, L" ");
+	mvwaddnwstr(win, w->y, w->x, text+offset, wcswidth(text+offset,w->w));
+
+	for (i=0;i<pos;++i) {
+		pos_width += wcwidth(text[i]);
+	}
+
+	for (i=0;i<offset;++i) {
+		offset_width += wcwidth(text[i]);
+	}
 
 	if (f->current_focus_id == w->id) {
-		f->cursor_x = w->x + pos - offset;
+		f->cursor_x = w->x + pos_width - offset_width;
 		f->cursor_y = w->y;
 	}
 }
 
-static int wt_input_process(struct stfl_widget *w, struct stfl_widget *fw, struct stfl_form *f, int ch)
+static int wt_input_process(struct stfl_widget *w, struct stfl_widget *fw, struct stfl_form *f, wchar_t ch, int is_function_key)
 {
-	int pos = stfl_widget_getkv_int(w, "pos", 0);
-	const char *text = stfl_widget_getkv_str(w, "text", "");
-	int text_len = strlen(text);
-	int modal = stfl_widget_getkv_int(w, "modal", 0);
+	int pos = stfl_widget_getkv_int(w, L"pos", 0);
+	int modal = stfl_widget_getkv_int(w, L"modal", 0);
+	const wchar_t *text = stfl_widget_getkv_str(w, L"text", L"");
+	int text_len = wcslen(text);
 
 	if (modal && ((ch == '\t') || (ch == KEY_LEFT && pos <= 0) || (ch == KEY_RIGHT && pos >= text_len) || (ch == KEY_UP) || (ch == KEY_DOWN)))
 		return 1;
 
 	if (ch == KEY_LEFT && pos > 0) {
-		stfl_widget_setkv_int(w, "pos", pos-1);
+		stfl_widget_setkv_int(w, L"pos", pos-1);
 		fix_offset_pos(w);
 		return 1;
 	}
 
 	if (ch == KEY_RIGHT && pos < text_len) {
-		stfl_widget_setkv_int(w, "pos", pos+1);
+		stfl_widget_setkv_int(w, L"pos", pos+1);
 		fix_offset_pos(w);
 		return 1;
 	}
 
 	// pos1 / home / Ctrl-A
 	if (ch == KEY_HOME || ch == 1) {
-		stfl_widget_setkv_int(w, "pos", 0);
+		stfl_widget_setkv_int(w, L"pos", 0);
 		fix_offset_pos(w);
 		return 1;
 	}
 
 	// end / Ctrl-E
 	if (ch == KEY_END || ch == 5) {
-		stfl_widget_setkv_int(w, "pos", text_len);
+		stfl_widget_setkv_int(w, L"pos", text_len);
 		fix_offset_pos(w);
 		return 1;
 	}
@@ -131,11 +149,11 @@ static int wt_input_process(struct stfl_widget *w, struct stfl_widget *fw, struc
 	if (ch == KEY_DC) {
 		if (pos == text_len)
 			return 0;
-		char newtext[text_len];
-		memcpy(newtext, text, pos);
-		memcpy(newtext+pos, text+pos+1, text_len-(pos+1));
+		wchar_t newtext[text_len];
+		wmemcpy(newtext, text, pos);
+		wmemcpy(newtext+pos, text+pos+1, text_len-(pos+1));
 		newtext[text_len-1] = 0;
-		stfl_widget_setkv_str(w, "text", newtext);
+		stfl_widget_setkv_str(w, L"text", newtext);
 		fix_offset_pos(w);
 		return 1;
 	}
@@ -144,25 +162,25 @@ static int wt_input_process(struct stfl_widget *w, struct stfl_widget *fw, struc
 	if (ch == KEY_BACKSPACE || ch == 127) {
 		if (pos == 0)
 			return 0;
-		char newtext[text_len];
-		memcpy(newtext, text, pos-1);
-		memcpy(newtext+pos-1, text+pos, text_len-pos);
+		wchar_t newtext[text_len];
+		wmemcpy(newtext, text, pos-1);
+		wmemcpy(newtext+pos-1, text+pos, text_len-pos);
 		newtext[text_len-1] = 0;
-		stfl_widget_setkv_str(w, "text", newtext);
-		stfl_widget_setkv_int(w, "pos", pos-1);
+		stfl_widget_setkv_str(w, L"text", newtext);
+		stfl_widget_setkv_int(w, L"pos", pos-1);
 		fix_offset_pos(w);
 		return 1;
 	}
 
 	// 'normal' characters
-	if (ch >= 32 && ch <= 255) {
-		char newtext[text_len + 2];
-		memcpy(newtext, text, pos);
+	if (!is_function_key && iswprint(ch)) {
+		wchar_t newtext[text_len + 2];
+		wmemcpy(newtext, text, pos);
 		newtext[pos] = ch;
-		memcpy(newtext+pos+1, text+pos, text_len - pos);
+		wmemcpy(newtext+pos+1, text+pos, text_len - pos);
 		newtext[text_len + 1] = 0;
-		stfl_widget_setkv_str(w, "text", newtext);
-		stfl_widget_setkv_int(w, "pos", pos+1);
+		stfl_widget_setkv_str(w, L"text", newtext);
+		stfl_widget_setkv_int(w, L"pos", pos+1);
 		fix_offset_pos(w);
 		return 1;
 	}
@@ -171,7 +189,7 @@ static int wt_input_process(struct stfl_widget *w, struct stfl_widget *fw, struc
 }
 
 struct stfl_widget_type stfl_widget_type_input = {
-	"input",
+	L"input",
 	wt_input_init,
 	0, // f_done
 	0, // f_enter 

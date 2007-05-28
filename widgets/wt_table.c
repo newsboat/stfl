@@ -93,7 +93,7 @@ static void wt_table_prepare(struct stfl_widget *w, struct stfl_form *f)
 
 	struct stfl_widget *c = w->first_child;
 	while (c) {
-		if (!strcmp(c->type->name, "tablebr")) {
+		if (!wcscmp(c->type->name, L"tablebr")) {
 			if (c->next_sibling)
 				row_counter++;
 			col_counter = 0;
@@ -103,8 +103,8 @@ static void wt_table_prepare(struct stfl_widget *w, struct stfl_form *f)
 
 			assert(col_counter < MAX_COLS && row_counter < MAX_ROWS);
 
-			int colspan = stfl_widget_getkv_int(c, ".colspan", 1);
-			int rowspan = stfl_widget_getkv_int(c, ".rowspan", 1);
+			int colspan = stfl_widget_getkv_int(c, L".colspan", 1);
+			int rowspan = stfl_widget_getkv_int(c, L".rowspan", 1);
 
 			max_colspan = max(max_colspan, colspan);
 			max_rowspan = max(max_rowspan, rowspan);
@@ -112,9 +112,9 @@ static void wt_table_prepare(struct stfl_widget *w, struct stfl_form *f)
 			d->cols = max(d->cols, col_counter+colspan);
 			d->rows = max(d->rows, row_counter+rowspan);
 
-			const char *expand = stfl_widget_getkv_str(c, ".expand", "vh");
-			const char *spacer = stfl_widget_getkv_str(c, ".spacer", "");
-			const char *border = stfl_widget_getkv_str(c, ".border", "");
+			const wchar_t *expand = stfl_widget_getkv_str(c, L".expand", L"vh");
+			const wchar_t *spacer = stfl_widget_getkv_str(c, L".spacer", L"");
+			const wchar_t *border = stfl_widget_getkv_str(c, L".border", L"");
 
 			for (i=col_counter; i<col_counter+colspan; i++)
 			for (j=row_counter; j<row_counter+rowspan; j++)
@@ -128,27 +128,27 @@ static void wt_table_prepare(struct stfl_widget *w, struct stfl_form *f)
 				d->map[i][j]->colspan_nr = i-col_counter;
 				d->map[i][j]->rowspan_nr = j-row_counter;
 
-				d->map[i][j]->vexpand = strchr(expand, 'v') != 0;
-				d->map[i][j]->hexpand = strchr(expand, 'h') != 0;
+				d->map[i][j]->vexpand = wcschr(expand, L'v') != 0;
+				d->map[i][j]->hexpand = wcschr(expand, L'h') != 0;
 
 				if (i == col_counter) {
-					if (strchr(spacer, 'l') != 0) d->map[i][j]->border_l = 1;
-					if (strchr(border, 'l') != 0) d->map[i][j]->border_l = 2;
+					if (wcschr(spacer, L'l') != 0) d->map[i][j]->border_l = 1;
+					if (wcschr(border, L'l') != 0) d->map[i][j]->border_l = 2;
 				}
 
 				if (i == col_counter+colspan-1) {
-					if (strchr(spacer, 'r') != 0) d->map[i][j]->border_r = 1;
-					if (strchr(border, 'r') != 0) d->map[i][j]->border_r = 2;
+					if (wcschr(spacer, L'r') != 0) d->map[i][j]->border_r = 1;
+					if (wcschr(border, L'r') != 0) d->map[i][j]->border_r = 2;
 				}
 
 				if (j == row_counter) {
-					if (strchr(spacer, 't') != 0) d->map[i][j]->border_t = 1;
-					if (strchr(border, 't') != 0) d->map[i][j]->border_t = 2;
+					if (wcschr(spacer, L't') != 0) d->map[i][j]->border_t = 1;
+					if (wcschr(border, L't') != 0) d->map[i][j]->border_t = 2;
 				}
 
 				if (j == row_counter+rowspan-1) {
-					if (strchr(spacer, 'b') != 0) d->map[i][j]->border_b = 1;
-					if (strchr(border, 'b') != 0) d->map[i][j]->border_b = 2;
+					if (wcschr(spacer, L'b') != 0) d->map[i][j]->border_b = 1;
+					if (wcschr(border, L'b') != 0) d->map[i][j]->border_b = 2;
 				}
 
 				if (i > 0 && d->map[i-1][j])
@@ -236,7 +236,7 @@ static void wt_table_prepare(struct stfl_widget *w, struct stfl_form *f)
 		if (m == 0 || m->spanpadding || m->colspan > i)
 			continue;
 
-		int min_w = max(m->w->min_w, stfl_widget_getkv_int(m->w, ".width", 1));
+		int min_w = max(m->w->min_w, stfl_widget_getkv_int(m->w, L".width", 1));
 
 		if (col_counter == 0 && m->mc_border_l)
 			min_w += 3;
@@ -294,7 +294,7 @@ static void wt_table_prepare(struct stfl_widget *w, struct stfl_form *f)
 		if (m == 0 || m->spanpadding || m->rowspan > i)
 			continue;
 
-		int min_h = max(m->w->min_h, stfl_widget_getkv_int(m->w, ".height", 1));
+		int min_h = max(m->w->min_h, stfl_widget_getkv_int(m->w, L".height", 1));
 
 		if (row_counter == 0 && m->mc_border_t)
 			min_h++;
@@ -475,15 +475,15 @@ static void wt_table_draw(struct stfl_widget *w, struct stfl_form *f, WINDOW *wi
 				if (m->mc_border_b)
 					c->h--;
 
-				const char *tie = stfl_widget_getkv_str(c, ".tie", "lrtb");
+				const wchar_t *tie = stfl_widget_getkv_str(c, L".tie", L"lrtb");
 				
-				if (!strchr(tie, 'l') && !strchr(tie, 'r')) c->x += (c->w - c->min_w)/2;
-				if (!strchr(tie, 'l') &&  strchr(tie, 'r')) c->x += c->w - c->min_w;
-				if (!strchr(tie, 'l') || !strchr(tie, 'r')) c->w = c->min_w;
+				if (!wcschr(tie, L'l') && !wcschr(tie, L'r')) c->x += (c->w - c->min_w)/2;
+				if (!wcschr(tie, L'l') &&  wcschr(tie, L'r')) c->x += c->w - c->min_w;
+				if (!wcschr(tie, L'l') || !wcschr(tie, L'r')) c->w = c->min_w;
 				
-				if (!strchr(tie, 't') && !strchr(tie, 'b')) c->y += (c->h - c->min_h)/2;
-				if (!strchr(tie, 't') &&  strchr(tie, 'b')) c->y += c->h - c->min_h;
-				if (!strchr(tie, 't') || !strchr(tie, 'b')) c->h = c->min_h;
+				if (!wcschr(tie, L't') && !wcschr(tie, L'b')) c->y += (c->h - c->min_h)/2;
+				if (!wcschr(tie, L't') &&  wcschr(tie, L'b')) c->y += c->h - c->min_h;
+				if (!wcschr(tie, L't') || !wcschr(tie, L'b')) c->h = c->min_h;
 
 				c->type->f_draw(c, f, win);
 			}
@@ -584,7 +584,7 @@ static void wt_table_draw(struct stfl_widget *w, struct stfl_form *f, WINDOW *wi
 	}
 }
 
-static int wt_table_process(struct stfl_widget *w, struct stfl_widget *fw, struct stfl_form *f, int ch)
+static int wt_table_process(struct stfl_widget *w, struct stfl_widget *fw, struct stfl_form *f, wchar_t ch, int is_function_key)
 {
 	struct table_data *d = w->internal_data;
 	struct stfl_widget *n, *c;
@@ -650,7 +650,7 @@ static int wt_table_process(struct stfl_widget *w, struct stfl_widget *fw, struc
 }
 
 struct stfl_widget_type stfl_widget_type_table = {
-	"table",
+	L"table",
 	0, // f_init
 	wt_table_done,
 	0, // f_enter 
@@ -664,7 +664,7 @@ static void wt_tablebr_prepare(struct stfl_widget *w, struct stfl_form *f) { }
 static void wt_tablebr_draw(struct stfl_widget *w, struct stfl_form *f, WINDOW *win) { }
 
 struct stfl_widget_type stfl_widget_type_tablebr = {
-	"tablebr",
+	L"tablebr",
 	0, // f_init
 	0, // f_done
 	0, // f_enter 

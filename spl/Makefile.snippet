@@ -29,6 +29,6 @@ spl/mod_stfl.so: libstfl.a stfl.h spl/mod_stfl.c
 		-L. -lstfl $(LDLIBS) -o spl/mod_stfl.so
 
 install_spl: spl/mod_stfl.so
-	mkdir -p $(prefix)/lib/spl_modules
-	install spl/mod_stfl.so $(prefix)/lib/spl_modules/
+	mkdir -p $(DESTDIR)$(prefix)/lib/spl_modules
+	install spl/mod_stfl.so $(DESTDIR)$(prefix)/lib/spl_modules/
 

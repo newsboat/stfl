@@ -27,11 +27,12 @@ install: install_python
 python/_stfl.so python/stfl.py python/stfl.pyc: libstfl.a stfl.h python/stfl.i swig/*.i
 	cd python && swig -python stfl.i
 	gcc -shared -fPIC python/stfl_wrap.c -I/usr/include/python$(PYTHON_VERSION) \
-		-I. -L. -lstfl -lncurses -o python/_stfl.so
+		-I. -L. -lstfl -lncursesw -o python/_stfl.so
 	cd python && python -c 'import stfl'
 
 install_python: python/_stfl.so python/stfl.py python/stfl.pyc
-	cp python/_stfl.so /usr/lib/python2.4/lib-dynload/
-	cp python/stfl.pyc /usr/lib/python2.4/
-	cp python/stfl.py /usr/lib/python2.4/
+	mkdir -p $(DESTDIR)/usr/lib/python$(PYTHON_VERSION)/lib-dynload/
+	cp python/_stfl.so $(DESTDIR)/usr/lib/python$(PYTHON_VERSION)/lib-dynload/
+	cp python/stfl.pyc $(DESTDIR)/usr/lib/python$(PYTHON_VERSION)/
+	cp python/stfl.py $(DESTDIR)/usr/lib/python$(PYTHON_VERSION)/
 

@@ -23,108 +23,127 @@
 
 #include <string.h>
 #include <stdlib.h>
+#include <wchar.h>
+
+static wchar_t *wcssep(wchar_t **stringp, const wchar_t *delim) {
+	register wchar_t *tmp=*stringp;
+	register wchar_t *tmp2=tmp;
+	register const wchar_t *tmp3;
+	if (!*stringp) return 0;
+	for (tmp2=tmp; *tmp2; ++tmp2) {
+		for (tmp3=delim; *tmp3; ++tmp3)
+			if (*tmp2==*tmp3) {       /* delimiter found */
+				*tmp2=0;
+				*stringp=tmp2+1;
+				return tmp;
+			}
+	}
+	*stringp=0;
+	return tmp;
+}
+
 
 static int stfl_colorpair_begin = -1;
 static int stfl_colorpair_counter = -1;
 
-void stfl_style(WINDOW *win, const char *style)
+void stfl_style(WINDOW *win, const wchar_t *style)
 {
 	int bg_color = -1, fg_color = -1, attr = A_NORMAL;
 
-	style += strspn(style, " \t");
+	style += wcsspn(style, L" \t");
 
 	while (*style)
 	{
-		int field_len = strcspn(style, ",");
-		char field[field_len+1];
-		memcpy(field, style, field_len);
+		int field_len = wcscspn(style, L",");
+		wchar_t field[field_len+1];
+		wmemcpy(field, style, field_len);
 		field[field_len] = 0;
 		style += field_len;
 
-		if (*style == ',')
+		if (*style == L',')
 			style++;
 
-		char *sepp = field;
-		char *key = strsep(&sepp, "=");
-		char *value = strsep(&sepp, "");
+		wchar_t *sepp = field;
+		wchar_t *key = wcssep(&sepp, L"=");
+		wchar_t *value = wcssep(&sepp, L"");
 
 		if (!key || !value) continue;
 
-		key += strspn(key, " \t");
-		key = strsep(&key, " \t");
+		key += wcsspn(key, L" \t");
+		key = wcssep(&key, L" \t");
 
-		value += strspn(value, " \t");
-		value = strsep(&value, " \t");
+		value += wcsspn(value, L" \t");
+		value = wcssep(&value, L" \t");
 
-		if (!strcmp(key, "bg") || !strcmp(key, "fg"))
+		if (!wcscmp(key, L"bg") || !wcscmp(key, L"fg"))
 		{
 			int color = -1;
-			if (!strcmp(value, "black"))
+			if (!wcscmp(value, L"black"))
 				color = COLOR_BLACK;
 			else
-			if (!strcmp(value, "red"))
+			if (!wcscmp(value, L"red"))
 				color = COLOR_RED;
 			else
-			if (!strcmp(value, "green"))
+			if (!wcscmp(value, L"green"))
 				color = COLOR_GREEN;
 			else
-			if (!strcmp(value, "yellow"))
+			if (!wcscmp(value, L"yellow"))
 				color = COLOR_YELLOW;
 			else
-			if (!strcmp(value, "blue"))
+			if (!wcscmp(value, L"blue"))
 				color = COLOR_BLUE;
 			else
-			if (!strcmp(value, "magenta"))
+			if (!wcscmp(value, L"magenta"))
 				color = COLOR_MAGENTA;
 			else
-			if (!strcmp(value, "cyan"))
+			if (!wcscmp(value, L"cyan"))
 				color = COLOR_CYAN;
 			else
-			if (!strcmp(value, "white"))
+			if (!wcscmp(value, L"white"))
 				color = COLOR_WHITE;
 			else {
-				fprintf(stderr, "STFL Style Error: Unknown %s color: '%s'\n", key, value);
+				fprintf(stderr, "STFL Style Error: Unknown %ls color: '%ls'\n", key, value);
 				abort();
 			}
 
-			if (!strcmp(key, "bg"))
+			if (!wcscmp(key, L"bg"))
 				bg_color = color;
 			else
 				fg_color = color;
 		}
 		else
-		if (!strcmp(key, "attr"))
+		if (!wcscmp(key, L"attr"))
 		{
-			if (!strcmp(value, "standout"))
+			if (!wcscmp(value, L"standout"))
 				attr |= A_STANDOUT;
 			else
-			if (!strcmp(value, "underline"))
+			if (!wcscmp(value, L"underline"))
 				attr |= A_UNDERLINE;
 			else
-			if (!strcmp(value, "reverse"))
+			if (!wcscmp(value, L"reverse"))
 				attr |= A_REVERSE;
 			else
-			if (!strcmp(value, "blink"))
+			if (!wcscmp(value, L"blink"))
 				attr |= A_BLINK;
 			else
-			if (!strcmp(value, "dim"))
+			if (!wcscmp(value, L"dim"))
 				attr |= A_DIM;
 			else
-			if (!strcmp(value, "bold"))
+			if (!wcscmp(value, L"bold"))
 				attr |= A_BOLD;
 			else
-			if (!strcmp(value, "protect"))
+			if (!wcscmp(value, L"protect"))
 				attr |= A_PROTECT;
 			else
-			if (!strcmp(value, "invis"))
+			if (!wcscmp(value, L"invis"))
 				attr |= A_INVIS;
 			else {
-				fprintf(stderr, "STFL Style Error: Unknown attribute: '%s'\n", value);
+				fprintf(stderr, "STFL Style Error: Unknown attribute: '%ls'\n", value);
 				abort();
 			}
 		}
 		else {
-			fprintf(stderr, "STFL Style Error: Unknown keyword: '%s'\n", key);
+			fprintf(stderr, "STFL Style Error: Unknown keyword: '%ls'\n", key);
 			abort();
 		}
 	}
@@ -158,13 +177,13 @@ void stfl_style(WINDOW *win, const char *style)
 
 void stfl_widget_style(struct stfl_widget *w, struct stfl_form *f, WINDOW *win)
 {
-	const char *style = "";
+	const wchar_t *style = L"";
 
 	if (f->current_focus_id == w->id)
-		style = stfl_widget_getkv_str(w, "style_focus", "");
+		style = stfl_widget_getkv_str(w, L"style_focus", L"");
 
 	if (*style == 0)
-		style = stfl_widget_getkv_str(w, "style_normal", "");
+		style = stfl_widget_getkv_str(w, L"style_normal", L"");
 
 	stfl_style(win, style);
 }

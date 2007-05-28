@@ -81,13 +81,13 @@ static void wt_box_draw(struct stfl_widget *w, struct stfl_form *f, WINDOW *win)
 	struct stfl_widget *c = w->first_child;
 	while (c)
 	{
-		int size_w = stfl_widget_getkv_int(c, ".width", 0);
+		int size_w = stfl_widget_getkv_int(c, L".width", 0);
 		if (size_w < c->min_w) size_w = c->min_w;
 
-		int size_h = stfl_widget_getkv_int(c, ".height", 0);
+		int size_h = stfl_widget_getkv_int(c, L".height", 0);
 		if (size_h < c->min_h) size_h = c->min_h;
 
-		if (strchr(stfl_widget_getkv_str(c, ".expand", "vh"),
+		if (wcschr(stfl_widget_getkv_str(c, L".expand", L"vh"),
 				d->type == 'H' ? 'h' : 'v'))
 			num_dyn_children++;
 
@@ -112,15 +112,15 @@ static void wt_box_draw(struct stfl_widget *w, struct stfl_form *f, WINDOW *win)
 	for (j=box_y; j<box_y+box_h; j++)
 		mvwaddch(win, j, i, ' ');
 
-	const char *tie = stfl_widget_getkv_str(w, "tie", "lrtb");
+	const wchar_t *tie = stfl_widget_getkv_str(w, L"tie", L"lrtb");
 
-	if (!strchr(tie, 'l') && !strchr(tie, 'r')) box_x += (box_w-min_w)/2;
-	if (!strchr(tie, 'l') &&  strchr(tie, 'r')) box_x += box_w-min_w;
-	if (!strchr(tie, 'l') || !strchr(tie, 'r')) box_w = min_w;
+	if (!wcschr(tie, L'l') && !wcschr(tie, L'r')) box_x += (box_w-min_w)/2;
+	if (!wcschr(tie, L'l') &&  wcschr(tie, L'r')) box_x += box_w-min_w;
+	if (!wcschr(tie, L'l') || !wcschr(tie, L'r')) box_w = min_w;
 
-	if (!strchr(tie, 't') && !strchr(tie, 'b')) box_y += (box_h-min_h)/2;
-	if (!strchr(tie, 't') &&  strchr(tie, 'b')) box_y += box_h-min_h;
-	if (!strchr(tie, 't') || !strchr(tie, 'b')) box_h = min_h;
+	if (!wcschr(tie, L't') && !wcschr(tie, L'b')) box_y += (box_h-min_h)/2;
+	if (!wcschr(tie, L't') &&  wcschr(tie, L'b')) box_y += box_h-min_h;
+	if (!wcschr(tie, L't') || !wcschr(tie, L'b')) box_h = min_h;
 
 	int sizes_extra = (d->type == 'H' ? box_w - min_w : box_h - min_h);
 	int cursor = (d->type == 'H' ? box_x : box_y);
@@ -129,12 +129,12 @@ static void wt_box_draw(struct stfl_widget *w, struct stfl_form *f, WINDOW *win)
 	for (i=0; c; i++)
 	{
 		int size = stfl_widget_getkv_int(c,
-				d->type == 'H' ? ".width" : ".height", 0);
+				d->type == 'H' ? L".width" : L".height", 0);
 
 		if (size < (d->type == 'H' ? c->min_w : c->min_h))
 			size = d->type == 'H' ? c->min_w : c->min_h;
 
-		if (strchr(stfl_widget_getkv_str(c, ".expand", "vh"),
+		if (wcschr(stfl_widget_getkv_str(c, L".expand", L"vh"),
 				d->type == 'H' ? 'h' : 'v')) {
 			int extra = sizes_extra / num_dyn_children--;
 			sizes_extra -= extra;
@@ -155,22 +155,22 @@ static void wt_box_draw(struct stfl_widget *w, struct stfl_form *f, WINDOW *win)
 			cursor += c->h;
 		}
 
-		tie = stfl_widget_getkv_str(c, ".tie", "lrtb");
+		tie = stfl_widget_getkv_str(c, L".tie", L"lrtb");
 
-		if (!strchr(tie, 'l') && !strchr(tie, 'r')) c->x += (c->w - c->min_w)/2;
-		if (!strchr(tie, 'l') &&  strchr(tie, 'r')) c->x += c->w - c->min_w;
-		if (!strchr(tie, 'l') || !strchr(tie, 'r')) c->w = c->min_w;
+		if (!wcschr(tie, L'l') && !wcschr(tie, L'r')) c->x += (c->w - c->min_w)/2;
+		if (!wcschr(tie, L'l') &&  wcschr(tie, L'r')) c->x += c->w - c->min_w;
+		if (!wcschr(tie, L'l') || !wcschr(tie, L'r')) c->w = c->min_w;
 
-		if (!strchr(tie, 't') && !strchr(tie, 'b')) c->y += (c->h - c->min_h)/2;
-		if (!strchr(tie, 't') &&  strchr(tie, 'b')) c->y += c->h - c->min_h;
-		if (!strchr(tie, 't') || !strchr(tie, 'b')) c->h = c->min_h;
+		if (!wcschr(tie, L't') && !wcschr(tie, L'b')) c->y += (c->h - c->min_h)/2;
+		if (!wcschr(tie, L't') &&  wcschr(tie, L'b')) c->y += c->h - c->min_h;
+		if (!wcschr(tie, L't') || !wcschr(tie, L'b')) c->h = c->min_h;
 
 		c->type->f_draw(c, f, win);
 		c = c->next_sibling;
 	}
 }
 
-static int wt_box_process(struct stfl_widget *w, struct stfl_widget *fw, struct stfl_form *f, int ch)
+static int wt_box_process(struct stfl_widget *w, struct stfl_widget *fw, struct stfl_form *f, wchar_t ch, int is_function_key)
 {
 	struct box_data *d = w->internal_data;
 
@@ -194,7 +194,7 @@ static int wt_box_process(struct stfl_widget *w, struct stfl_widget *fw, struct 
 }
 
 struct stfl_widget_type stfl_widget_type_vbox = {
-	"vbox",
+	L"vbox",
 	wt_vbox_init,
 	wt_box_done,
 	0, // f_enter 
@@ -205,7 +205,7 @@ struct stfl_widget_type stfl_widget_type_vbox = {
 };
 
 struct stfl_widget_type stfl_widget_type_hbox = {
-	"hbox",
+	L"hbox",
 	wt_hbox_init,
 	wt_box_done,
 	0, // f_enter 

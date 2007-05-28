@@ -99,9 +99,9 @@ sub play
 	my $filename = $files[$1];
 	$filename =~ s/'/'\\''/g;
 	if (system("pidof xmms > /dev/null") != 0) {
-		system("xmms -p '$filename' &");
+		system("xmms -p '$filename' > /dev/null 2>&1 &");
 	} else {
-		system("xmms -e '$filename' &");
+		system("xmms -e '$filename' > /dev/null 2>&1 &");
 	}
 }
 

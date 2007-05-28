@@ -25,6 +25,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <assert.h>
+#include <wchar.h>
 
 struct stfl_widget_type *stfl_widget_types[] = {
 	&stfl_widget_type_label,
@@ -42,7 +43,7 @@ struct stfl_widget_type *stfl_widget_types[] = {
 int id_counter = 0;
 int curses_active = 0;
 
-struct stfl_widget *stfl_widget_new(const char *type)
+struct stfl_widget *stfl_widget_new(const wchar_t *type)
 {
 	struct stfl_widget_type *t;
 	int setfocus = 0;
@@ -54,7 +55,7 @@ struct stfl_widget *stfl_widget_new(const char *type)
 	}
 
 	for (i=0; (t = stfl_widget_types[i]) != 0; i++)
-		if (!strcmp(t->name, type))
+		if (!wcscmp(t->name, type))
 			break;
 
 	if (!t)
@@ -115,20 +116,20 @@ void stfl_widget_free(struct stfl_widget *w)
 	free(w);
 }
 
-extern struct stfl_kv *stfl_widget_setkv_int(struct stfl_widget *w, const char *key, int value)
+extern struct stfl_kv *stfl_widget_setkv_int(struct stfl_widget *w, const wchar_t *key, int value)
 {
-	char newtext[64];
-	snprintf(newtext, 64, "%d", value);
+	wchar_t newtext[64];
+	swprintf(newtext, 64, L"%d", value);
 	return stfl_widget_setkv_str(w, key, newtext);
 }
 
-struct stfl_kv *stfl_widget_setkv_str(struct stfl_widget *w, const char *key, const char *value)
+struct stfl_kv *stfl_widget_setkv_str(struct stfl_widget *w, const wchar_t *key, const wchar_t *value)
 {
 	struct stfl_kv *kv = w->kv_list;
 	while (kv) {
-		if (!strcmp(kv->key, key)) {
+		if (!wcscmp(kv->key, key)) {
 			free(kv->value);
-			kv->value = strdup(value);
+			kv->value = wcsdup(value);
 			return kv;
 		}
 		kv = kv->next;
@@ -136,22 +137,22 @@ struct stfl_kv *stfl_widget_setkv_str(struct stfl_widget *w, const char *key, co
 
 	kv = calloc(1, sizeof(struct stfl_kv));
 	kv->widget = w;
-	kv->key = strdup(key);
-	kv->value = strdup(value);
+	kv->key = wcsdup(key);
+	kv->value = wcsdup(value);
 	kv->id = ++id_counter;
 	kv->next = w->kv_list;
 	w->kv_list = kv;
 	return kv;
 }
 
-extern struct stfl_kv *stfl_setkv_by_name_int(struct stfl_widget *w, const char *name, int value)
+extern struct stfl_kv *stfl_setkv_by_name_int(struct stfl_widget *w, const wchar_t *name, int value)
 {
-	char newtext[64];
-	snprintf(newtext, 64, "%d", value);
+	wchar_t newtext[64];
+	swprintf(newtext, 64, L"%d", value);
 	return stfl_setkv_by_name_str(w, name, newtext);
 }
 
-extern struct stfl_kv *stfl_setkv_by_name_str(struct stfl_widget *w, const char *name, const char *value)
+extern struct stfl_kv *stfl_setkv_by_name_str(struct stfl_widget *w, const wchar_t *name, const wchar_t *value)
 {
 	struct stfl_kv *kv = stfl_kv_by_name(w, name);
 
@@ -159,40 +160,40 @@ extern struct stfl_kv *stfl_setkv_by_name_str(struct stfl_widget *w, const char 
 		return 0;
 
 	free(kv->value);
-	kv->value = strdup(value);
+	kv->value = wcsdup(value);
 	return kv;
 }
 
-static struct stfl_kv *stfl_widget_getkv_worker(struct stfl_widget *w, const char *key)
+static struct stfl_kv *stfl_widget_getkv_worker(struct stfl_widget *w, const wchar_t *key)
 {
 	struct stfl_kv *kv = w->kv_list;
 	while (kv) {
-		if (!strcmp(kv->key, key))
+		if (!wcscmp(kv->key, key))
 			return kv;
 		kv = kv->next;
 	}
 	return 0;
 }
 
-struct stfl_kv *stfl_widget_getkv(struct stfl_widget *w, const char *key)
+struct stfl_kv *stfl_widget_getkv(struct stfl_widget *w, const wchar_t *key)
 {
 	struct stfl_kv *kv = stfl_widget_getkv_worker(w, key);
 	if (kv) return kv;
 
-	int key1_len = strlen(key) + 2;
-	char key1[key1_len];
+	int key1_len = wcslen(key) + 2;
+	wchar_t key1[key1_len];
 
-	int key2_len = key1_len + strlen(w->type->name) + 1;
-	char key2[key2_len];
+	int key2_len = key1_len + wcslen(w->type->name) + 1;
+	wchar_t key2[key2_len];
 
-	int key3_len = w->cls ? key1_len + strlen(w->cls) + 1 : 0;
-	char key3[key3_len];
+	int key3_len = w->cls ? key1_len + wcslen(w->cls) + 1 : 0;
+	wchar_t key3[key3_len];
 
-	snprintf(key1, key1_len, "@%s", key);
-	snprintf(key2, key2_len, "@%s#%s", w->type->name, key);
+	swprintf(key1, key1_len, L"@%ls", key);
+	swprintf(key2, key2_len, L"@%ls#%ls", w->type->name, key);
 
 	if (key3_len)
-		snprintf(key3, key3_len, "@%s#%s", w->cls, key);
+		swprintf(key3, key3_len, L"@%ls#%ls", w->cls, key);
 
 	while (w)
 	{
@@ -213,55 +214,49 @@ struct stfl_kv *stfl_widget_getkv(struct stfl_widget *w, const char *key)
 	return 0;
 }
 
-int stfl_widget_getkv_int(struct stfl_widget *w, const char *key, int defval)
+int stfl_widget_getkv_int(struct stfl_widget *w, const wchar_t *key, int defval)
 {
 	struct stfl_kv *kv = stfl_widget_getkv(w, key);
-	char *endptr;
 	int ret;
 
 	if (!kv || !kv->value[0])
 		return defval;
 
-	ret = strtol(kv->value, &endptr, 10);
-
-	if (*endptr)
+	if (swscanf(kv->value,L"%d",&ret) < 1)
 		return defval;
 
 	return ret;
 }
 
-const char *stfl_widget_getkv_str(struct stfl_widget *w, const char *key, const char *defval)
+const wchar_t *stfl_widget_getkv_str(struct stfl_widget *w, const wchar_t *key, const wchar_t *defval)
 {
 	struct stfl_kv *kv = stfl_widget_getkv(w, key);
 	return kv ? kv->value : defval;
 }
 
-int stfl_getkv_by_name_int(struct stfl_widget *w, const char *name, int defval)
+int stfl_getkv_by_name_int(struct stfl_widget *w, const wchar_t *name, int defval)
 {
 	struct stfl_kv *kv = stfl_kv_by_name(w, name);
-	char *endptr;
 	int ret;
 
 	if (!kv || !kv->value[0])
 		return defval;
 
-	ret = strtol(kv->value, &endptr, 10);
-
-	if (*endptr)
+	if (swscanf(kv->value,L"%d",&ret) < 1)
 		return defval;
 
 	return ret;
 }
 
-const char *stfl_getkv_by_name_str(struct stfl_widget *w, const char *name, const char *defval)
+const wchar_t *stfl_getkv_by_name_str(struct stfl_widget *w, const wchar_t *name, const wchar_t *defval)
 {
 	struct stfl_kv *kv = stfl_kv_by_name(w, name);
 	return kv ? kv->value : defval;
 }
 
-struct stfl_widget *stfl_widget_by_name(struct stfl_widget *w, const char *name)
+struct stfl_widget *stfl_widget_by_name(struct stfl_widget *w, const wchar_t *name)
 {
-	if (w->name && !strcmp(w->name, name))
+	if (w->name && !wcscmp(w->name, name))
 		return w;
 
 	w = w->first_child;
@@ -289,11 +284,11 @@ struct stfl_widget *stfl_widget_by_id(struct stfl_widget *w, int id)
 	return 0;
 }
 
-struct stfl_kv *stfl_kv_by_name(struct stfl_widget *w, const char *name)
+struct stfl_kv *stfl_kv_by_name(struct stfl_widget *w, const wchar_t *name)
 {
 	struct stfl_kv *kv = w->kv_list;
 	while (kv) {
-		if (kv->name && !strcmp(kv->name, name))
+		if (kv->name && !wcscmp(kv->name, name))
 			return kv;
 		kv = kv->next;
 	}
@@ -435,7 +430,7 @@ struct stfl_form *stfl_form_new()
 	return f;
 }
 
-void stfl_form_event(struct stfl_form *f, char *event)
+void stfl_form_event(struct stfl_form *f, wchar_t *event)
 {
 	struct stfl_event **ep = &f->event_queue;
 	struct stfl_event *e = calloc(1, sizeof(struct stfl_event));
@@ -494,8 +489,10 @@ void stfl_form_run(struct stfl_form *f, int timeout)
 		noecho();
 		nonl();
 		keypad(stdscr, TRUE);
+		doupdate();
 		start_color();
 		use_default_colors();
+		wbkgdset(stdscr, ' ');
 		curses_active = 1;
 	}
 
@@ -519,8 +516,9 @@ void stfl_form_run(struct stfl_form *f, int timeout)
 	wtimeout(stdscr, timeout == 0 ? -1 : timeout);
 	wmove(stdscr, f->cursor_y, f->cursor_x);
 
+	wint_t wch;
 	pthread_mutex_unlock(&f->mtx);
-	int ch = wgetch(stdscr);
+	int rc = wget_wch(stdscr, &wch);
 	pthread_mutex_lock(&f->mtx);
 
 	/* fw may be invalid, regather it */
@@ -529,35 +527,35 @@ void stfl_form_run(struct stfl_form *f, int timeout)
 
 	struct stfl_widget *w = fw;
 
-	if (ch == ERR) {
-		stfl_form_event(f, strdup("TIMEOUT"));
+	if (rc == ERR) {
+		stfl_form_event(f, wcsdup(L"TIMEOUT"));
 		goto unshift_next_event;
 	}
 
 	while (w) {
-		if (w->type->f_process && w->type->f_process(w, fw, f, ch))
+		if (w->type->f_process && w->type->f_process(w, fw, f, wch, rc == KEY_CODE_YES))
 			goto unshift_next_event;
 		w = w->parent;
 	}
 
-	if (ch == '\r' || ch == '\n') {
-		stfl_form_event(f, strdup("ENTER"));
+	if (wch == L'\r' || wch == L'\n') {
+		stfl_form_event(f, wcsdup(L"ENTER"));
 		goto unshift_next_event;
 	}
 
-	if (ch == 27) {
-		stfl_form_event(f, strdup("ESC"));
+	if (wch == 27) {
+		stfl_form_event(f, wcsdup(L"ESC"));
 		goto unshift_next_event;
 	}
 
-	if (KEY_F(0) <= ch && ch <= KEY_F(63)) {
-		char *event = malloc(4);
-		snprintf(event, 4, "F%d", ch - KEY_F0);
+	if (rc == KEY_CODE_YES && KEY_F(0) <= wch && wch <= KEY_F(63)) {
+		wchar_t *event = malloc(4 * sizeof(wchar_t));
+		swprintf(event, 4, L"F%d", wch - KEY_F0);
 		stfl_form_event(f, event);
 		goto unshift_next_event;
 	}
 
-	if (ch == '\t')
+	if (wch == L'\t')
 	{
 		struct stfl_widget *old_fw = fw = stfl_widget_by_id(f->root, f->current_focus_id);
 		do {
@@ -587,9 +585,9 @@ void stfl_form_run(struct stfl_form *f, int timeout)
 		goto unshift_next_event;
 	}
 
-	{
-		char *event = malloc(16);
-		snprintf(event, 16, "CHAR(%d)", ch);
+	if (rc != KEY_CODE_YES) {
+		wchar_t *event = malloc(16 * sizeof(wchar_t));
+		swprintf(event, 16, L"CHAR(%u)", wch);
 		stfl_form_event(f, event);
 		goto unshift_next_event;
 	}

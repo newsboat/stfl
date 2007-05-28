@@ -24,47 +24,48 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <assert.h>
 
-static void extract_name(char **key, char **name)
+static void extract_name(wchar_t **key, wchar_t **name)
 {
-	int len = strcspn(*key, "[");
+	int len = wcscspn(*key, L"[");
 
 	if ((*key)[len] == 0) {
 		*name = 0;
 		return;
 	}
 
-	*name = strdup(*key+len+1);
-	*key = realloc(*key, len+1);
+	*name = wcsdup(*key+len+1);
+	*key = realloc(*key, sizeof(wchar_t)*(len+1));
 	(*key)[len] = 0;
 
-	len = strcspn(*name, "]");
+	len = wcscspn(*name, L"]");
 	(*name)[len] = 0;
 }
 
-static void extract_class(char **key, char **cls)
+static void extract_class(wchar_t **key, wchar_t **cls)
 {
-	int len = strcspn(*key, "#");
+	int len = wcscspn(*key, L"#");
 
 	if ((*key)[len] == 0) {
 		*cls = 0;
 		return;
 	}
 
-	*cls = strdup(*key+len+1);
-	*key = realloc(*key, len+1);
+	*cls = wcsdup(*key+len+1);
+	*key = realloc(*key, sizeof(wchar_t)*(len+1));
 	(*key)[len] = 0;
 }
 
-static int read_type(const char **text, char **type, char **name, char **cls)
+static int read_type(const wchar_t **text, wchar_t **type, wchar_t **name, wchar_t **cls)
 {
-	int len = strcspn(*text, " \t\r\n:{}");
+	int len = wcscspn(*text, L" \t\r\n:{}");
 
-	if ((*text)[len] == ':' || len == 0)
+	if ((*text)[len] == L':' || len == 0)
 		return 0;
 
-	*type = malloc(len+1);
-	memcpy(*type, *text, len);
+	*type = malloc((len+1)*sizeof(wchar_t));
+	wmemcpy(*type, *text, len);
 	(*type)[len] = 0;
 	*text += len;
 
@@ -74,45 +75,45 @@ static int read_type(const char **text, char **type, char **name, char **cls)
 	return 1;
 }
 
-static int read_kv(const char **text, char **key, char **name, char **value)
+static int read_kv(const wchar_t **text, wchar_t **key, wchar_t **name, wchar_t **value)
 {
-	int len_k = strcspn(*text, " \t\r\n:{}");
+	int len_k = wcscspn(*text, L" \t\r\n:{}");
 
-	if ((*text)[len_k] != ':' || len_k == 0)
+	if ((*text)[len_k] != L':' || len_k == 0)
 		return 0;
 
-	*key = malloc(len_k+1);
-	memcpy(*key, *text, len_k);
+	*key = malloc((len_k+1)*sizeof(wchar_t));
+	wmemcpy(*key, *text, len_k);
 	(*key)[len_k] = 0;
 	*text += len_k+1;
 
 	extract_name(key, name);
 
 	int len_v = 0, i = 0, j = 0;
-	while ((*text)[i] && (*text)[i] != ' ' && (*text)[i] != '{' && (*text)[i] != '}' &&
-	       (*text)[i] != '\t' && (*text)[i] != '\r' && (*text)[i] != '\n')
+	while ((*text)[i] && (*text)[i] != ' ' && (*text)[i] != L'{' && (*text)[i] != L'}' &&
+	       (*text)[i] != L'\t' && (*text)[i] != L'\r' && (*text)[i] != L'\n')
 	{
-		if ((*text)[i] == '\'')
-			while ((*text)[++i] != '\'') len_v++;
+		if ((*text)[i] == L'\'')
+			while ((*text)[++i] != L'\'') len_v++;
 		else
-		if ((*text)[i] == '\"')
-			while ((*text)[++i] != '\"') len_v++;
+		if ((*text)[i] == L'\"')
+			while ((*text)[++i] != L'\"') len_v++;
 		len_v++;
 		i++;
 	}
 
-	*value = malloc(len_v+1);
+	*value = malloc(sizeof(wchar_t)*(len_v+1));
 	i = 0;
 
-	while ((*text)[i] && (*text)[i] != ' ' && (*text)[i] != '{' && (*text)[i] != '}' &&
-	       (*text)[i] != '\t' && (*text)[i] != '\r' && (*text)[i] != '\n')
+	while ((*text)[i] && (*text)[i] != L' ' && (*text)[i] != L'{' && (*text)[i] != L'}' &&
+	       (*text)[i] != L'\t' && (*text)[i] != L'\r' && (*text)[i] != L'\n')
 	{
-		if ((*text)[i] == '\'')
-			while ((*text)[++i] != '\'')
+		if ((*text)[i] == L'\'')
+			while ((*text)[++i] != L'\'')
 				(*value)[j++] = (*text)[i];
 		else
-		if ((*text)[i] == '\"')
-			while ((*text)[++i] != '\"')
+		if ((*text)[i] == L'\"')
+			while ((*text)[++i] != L'\"')
 				(*value)[j++] = (*text)[i];
 		else
 			(*value)[j++] = (*text)[i];
@@ -125,7 +126,7 @@ static int read_kv(const char **text, char **key, char **name, char **value)
 	return 1;
 }
 
-struct stfl_widget *stfl_parser(const char *text)
+struct stfl_widget *stfl_parser(const wchar_t *text)
 {
 	struct stfl_widget *root = 0;
 	struct stfl_widget *current = 0;
@@ -138,16 +139,16 @@ struct stfl_widget *stfl_parser(const char *text)
 
 		if (bracket_indenting >= 0)
 		{
-			while (*text == ' ' || *text == '\t') text++;
+			while (*text == L' ' || *text == L'\t') text++;
 
-			while (*text == '}') {
+			while (*text == L'}') {
 				bracket_level--; text++;
-				while (*text == ' ' || *text == '\t') text++;
+				while (*text == L' ' || *text == L'\t') text++;
 			}
 
-			while (*text == '{') {
+			while (*text == L'{') {
 				bracket_level++; text++;
-				while (*text == ' ' || *text == '\t') text++;
+				while (*text == L' ' || *text == L'\t') text++;
 			}
 
 			if (bracket_level == 0)
@@ -157,26 +158,26 @@ struct stfl_widget *stfl_parser(const char *text)
 				goto parser_error;
 		}
 		else
-			if (*text == '}')
+			if (*text == L'}')
 				goto parser_error;
 
 		if (bracket_indenting >= 0)
 		{
-			while (*text == ' ' || *text == '\t')
+			while (*text == L' ' || *text == L'\t')
 				text++;
 
-			if (*text == '\r' || *text == '\n')
+			if (*text == L'\r' || *text == L'\n')
 				goto parser_error;
 
 			indenting = bracket_indenting + (bracket_level-1);
 		}
 		else
 		{
-			while (*text == ' ' || *text == '\t' || *text == '\r' || *text == '\n') {
-				if (*text == '\r' || *text == '\n')
+			while (*text == L' ' || *text == L'\t' || *text == L'\r' || *text == L'\n') {
+				if (*text == L'\r' || *text == L'\n')
 					indenting = 0;
 				else
-				if (*text == '\t')
+				if (*text == L'\t')
 					indenting = -1;
 				else
 				if (indenting >= 0)
@@ -184,13 +185,13 @@ struct stfl_widget *stfl_parser(const char *text)
 				text++;
 			}
 
-			if (*text == '*') {
-				while (*text && *text != '\r' && *text != '\n')
+			if (*text == L'*') {
+				while (*text && *text != L'\r' && *text != L'\n')
 					text++;
 				continue;
 			}
 
-			if (*text == '{') {
+			if (*text == L'{') {
 				bracket_indenting = indenting;
 				continue;
 			}
@@ -199,17 +200,22 @@ struct stfl_widget *stfl_parser(const char *text)
 		if (*text == 0)
 			break;
 
-		char *key, *name, *cls, *value;
+		wchar_t *key, *name, *cls, *value;
 		if (indenting < 0)
 			goto parser_error;
 
-		if (*text == '<')
+		if (*text == L'<')
 		{
-			int filename_len = strcspn(++text, ">");
-			char filename[filename_len+1];
+			int filename_len = wcscspn(++text, L">");
+			wchar_t wfn[filename_len+1];
 
-			memcpy(filename, text, filename_len);
-			filename[filename_len] = 0;
+			wmemcpy(wfn, text, filename_len+1);
+			wfn[filename_len] = 0;
+
+			size_t len = wcstombs(NULL,wfn,0)+1;
+			char filename[len];
+			size_t rc = wcstombs(filename, wfn, len);
+			assert(rc != (size_t)-1);
 
 			text += filename_len;
 			if (*text) text++;
@@ -300,12 +306,12 @@ struct stfl_widget *stfl_parser(const char *text)
 			n->cls = cls;
 		}
 
-		while (*text && *text != '\n' && *text != '\r' && *text != '{' && *text != '}')
+		while (*text && *text != L'\n' && *text != L'\r' && *text != L'{' && *text != L'}')
 		{
-			while (*text == ' ' || *text == '\t')
+			while (*text == L' ' || *text == L'\t')
 				text++;
 
-			if (*text && *text != '\n' && *text != '\r' && *text != '{' && *text != '}')
+			if (*text && *text != L'\n' && *text != L'\r' && *text != L'{' && *text != L'}')
 			{
 				if (read_kv(&text, &key, &name, &value) == 0)
 					goto parser_error;
@@ -330,16 +336,16 @@ parser_error:;
 	fprintf(stderr, "STFL Parser Error near '");
 
 	for (i=0; *text && i<20; i++, text++)
-		if (*text == '\n')
+		if (*text == L'\n')
 			fprintf(stderr, "\\n");
 		else
-		if (*text == '\t')
+		if (*text == L'\t')
 			fprintf(stderr, " ");
 		else
 		if (*text < 32)
-			fprintf(stderr, "\\%03o", *text);
+			fprintf(stderr, "\\%03lo", *text);
 		else
-			fprintf(stderr, "%c", *text);
+			fprintf(stderr, "%lc", (wint_t)*text);
 
 	fprintf(stderr, "'.\r\n");
 	abort();
@@ -371,8 +377,23 @@ struct stfl_widget *stfl_parser_file(const char *filename)
 		}
 	}
 
-	struct stfl_widget *w = stfl_parser(text);
+	const char * text1 = text;
+	size_t wtextsize = mbsrtowcs(NULL,&text1,strlen(text1)+1,NULL)+1;
+	wchar_t * wtext = malloc(sizeof(wchar_t)*wtextsize);
+
+	size_t rc = mbstowcs(wtext, text, wtextsize);
+	assert(rc != (size_t)-1);
+
+/*
+	fprintf(stderr,"strlen(text) = %u wcslen(wtext) = %u rc = %u wtextsize = %u\n", strlen(text), wcslen(wtext), rc, wtextsize);
+	fprintf(stderr,"this is where is fucked up: `%lc' `%lc' `%lc' `%lc' `%lc'\n",text1[0],text1[1],text1[2],text1[3],text1[4]);
+	fprintf(stderr,"original: `%s'\n", text);
+	fprintf(stderr,"converted: `%ls'\n", wtext);
+	*/
+
+	struct stfl_widget *w = stfl_parser(wtext);
 	free(text);
+	free(wtext);
 
 	return w;
 }

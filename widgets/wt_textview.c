@@ -69,7 +69,8 @@ static void wt_textview_prepare(struct stfl_widget *w, struct stfl_form *f)
 		w->allow_focus = 1;
 
 	while (c) {
-		int len = strlen(stfl_widget_getkv_str(c, "text", ""));
+		const wchar_t * text = stfl_widget_getkv_str(c, L"text", L"");
+		int len = wcswidth(text, wcslen(text));
 		w->min_w = len > w->min_w ? len : w->min_w;
 		c = c->next_sibling;
 	}
@@ -79,10 +80,10 @@ static void wt_textview_draw(struct stfl_widget *w, struct stfl_form *f, WINDOW 
 {
 	//fix_offset_pos(w);
 
-	int offset = stfl_widget_getkv_int(w, "offset", 0);
+	int offset = stfl_widget_getkv_int(w, L"offset", 0);
 
-	const char *style_normal = stfl_widget_getkv_str(w, "style_normal", "");
-	const char *style_end = stfl_widget_getkv_str(w, "style_end", "");
+	const wchar_t *style_normal = stfl_widget_getkv_str(w, L"style_normal", L"");
+	const wchar_t *style_end = stfl_widget_getkv_str(w, L"style_end", L"");
 
 	struct stfl_widget *c;
 	int i;
@@ -93,13 +94,13 @@ static void wt_textview_draw(struct stfl_widget *w, struct stfl_form *f, WINDOW 
 		if (i < offset)
 			continue;
 
-		mvwaddnstr(win, w->y+i-offset, w->x,
-				stfl_widget_getkv_str(c, "text", ""), w->w);
+		mvwaddnwstr(win, w->y+i-offset, w->x,
+				stfl_widget_getkv_str(c, L"text", L""), w->w);
 	}
 
 	stfl_style(win, style_end);
 	while (i<offset+w->h) {
-		mvwaddnstr(win,w->y+i-offset,w->x,"~",w->w);
+		mvwaddnwstr(win,w->y+i-offset,w->x,L"~",w->w);
 		++i;
 	}
 
@@ -107,10 +108,10 @@ static void wt_textview_draw(struct stfl_widget *w, struct stfl_form *f, WINDOW 
 		f->cursor_x = f->cursor_y = -1;
 }
 
-static int wt_textview_process(struct stfl_widget *w, struct stfl_widget *fw, struct stfl_form *f, int ch)
+static int wt_textview_process(struct stfl_widget *w, struct stfl_widget *fw, struct stfl_form *f, wchar_t ch, int is_function_key)
 {
 	//int pos = stfl_widget_getkv_int(w, "pos", 0);
-	int offset = stfl_widget_getkv_int(w,"offset",0);
+	int offset = stfl_widget_getkv_int(w,L"offset",0);
 	int maxoffset = -1;
 
 	struct stfl_widget *c = w->first_child;
@@ -120,32 +121,32 @@ static int wt_textview_process(struct stfl_widget *w, struct stfl_widget *fw, st
 	}
 
 	if (ch == KEY_UP && offset> 0) {
-		stfl_widget_setkv_int(w, "offset", offset-1);
+		stfl_widget_setkv_int(w, L"offset", offset-1);
 		
 		//fix_offset_pos(w);
 		return 1;
 	}
 		
 	if (ch == KEY_DOWN && offset < maxoffset) {
-		stfl_widget_setkv_int(w, "offset", offset+1);
+		stfl_widget_setkv_int(w, L"offset", offset+1);
 		//fix_offset_pos(w);
 		return 1;
 	}
 
-	if (ch == ' ') {
+	if (ch == L' ') {
 		if ((offset + w->h - 1) < maxoffset) { // XXX: last page handling won't work with that
-			stfl_widget_setkv_int(w, "offset", offset + w->h - 1);
+			stfl_widget_setkv_int(w, L"offset", offset + w->h - 1);
 		} else {
-			stfl_widget_setkv_int(w, "offset", maxoffset);
+			stfl_widget_setkv_int(w, L"offset", maxoffset);
 		}
 		return 1;
 	}
 
-	if (ch == 'b' || ch == '-') {
+	if (ch == L'b' || ch == L'-') {
 		if ((offset - w->h + 1) > 0) { // XXX: first page handling won't work with that
-			stfl_widget_setkv_int(w, "offset", offset - w->h + 1);
+			stfl_widget_setkv_int(w, L"offset", offset - w->h + 1);
 		} else {
-			stfl_widget_setkv_int(w, "offset", 0);
+			stfl_widget_setkv_int(w, L"offset", 0);
 		}
 		return 1;
 	}
@@ -154,7 +155,7 @@ static int wt_textview_process(struct stfl_widget *w, struct stfl_widget *fw, st
 }
 
 struct stfl_widget_type stfl_widget_type_textview = {
-	"textview",
+	L"textview",
 	0, // f_init
 	0, // f_done
 	0, // f_enter 
