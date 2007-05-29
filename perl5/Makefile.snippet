@@ -23,10 +23,10 @@ all: perl5/build_ok
 install: install_perl5
 
 perl5/build_ok: libstfl.a stfl.h perl5/stfl.i swig/*.i
-	test ! -f perl5/Makefile || make -C perl5 clean
+	test ! -f perl5/Makefile || $(MAKE) -C perl5 clean
 	cd perl5 && swig -perl5 stfl.i && perl Makefile.PL
-	make -C perl5 && touch perl5/build_ok
+	$(MAKE) -C perl5 && touch perl5/build_ok
 
 install_perl5: perl5/build_ok
-	make -C perl5 install
+	$(MAKE) -C perl5 install
 
