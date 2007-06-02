@@ -90,15 +90,20 @@ static void wt_list_draw(struct stfl_widget *w, struct stfl_form *f, WINDOW *win
 	struct stfl_widget *c;
 	int i, j;
 
+	if (f->current_focus_id == w->id)
+		f->cursor_x = f->cursor_y = -1;
+
 	for (i=0, c=w->first_child; c && i < offset+w->h; i++, c=c->next_sibling)
 	{
 		if (i < offset)
 			continue;
 
 		if (i == pos) {
-			if (f->current_focus_id == w->id)
+			if (f->current_focus_id == w->id) {
 				stfl_style(win, style_focus);
-			else
+				f->cursor_y = w->y+i-offset;
+				f->cursor_x = w->x;
+			} else
 				stfl_style(win, style_selected);
 
 			stfl_widget_setkv_str(w, L"pos_name", c->name ? c->name : L"");	
@@ -118,9 +123,6 @@ static void wt_list_draw(struct stfl_widget *w, struct stfl_form *f, WINDOW *win
 
 		mvwaddnwstr(win, w->y+i-offset, w->x, text, w->w);
 	}
-
-	if (f->current_focus_id == w->id)
-		f->cursor_x = f->cursor_y = -1;
 }
 
 static int wt_list_process(struct stfl_widget *w, struct stfl_widget *fw, struct stfl_form *f, wchar_t ch, int is_function_key)
