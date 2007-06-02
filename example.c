@@ -24,11 +24,16 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
+
+#include <langinfo.h>
 #include <locale.h>
 
 int main()
 {
-	struct stfl_ipool *ipool = stfl_ipool_create("ISO8859-1");
+	if (!setlocale(LC_ALL,""))
+		fprintf(stderr, "WARING: Can't set locale!\n");
+
+	struct stfl_ipool *ipool = stfl_ipool_create(nl_langinfo(CODESET));
 	struct stfl_form *f = stfl_create(L"<example.stfl>");
 
 	stfl_set(f, L"value_a", L"This is a little");
