@@ -30,6 +30,7 @@
 
 #include <spl.h>
 #include <stdlib.h>
+#include <locale.h>
 
 static struct stfl_ipool *ipool = 0;
 
@@ -245,6 +246,7 @@ void SPL_ABI(spl_mod_stfl_init)(struct spl_vm *vm, struct spl_module *mod, int r
 	if (!ipool) {
 		ipool = stfl_ipool_create("UTF8");
 		atexit(destroy_ipool_atexit);
+		setlocale(LC_ALL,"");
 	}
 
 	spl_hnode_reg(vm, "stfl_form", handler_stfl_form_node, 0);
