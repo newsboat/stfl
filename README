@@ -279,6 +279,10 @@ functions. The exceptions are:
 	F0 .. F63
 		A function key has been pressed.
 
+	UNKNOWN
+		An unkown key has been pressed.
+		(Usually this is the result of a broken multibyte sequence)
+
 A key binding description is a whitespace-seperated list of key descriptions
 used in bind_* variables to bind keys to widget actions. Each widget provides
 default bindings for all its actions. If you want to extend the list of bind

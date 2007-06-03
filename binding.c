@@ -48,6 +48,9 @@ wchar_t *stfl_keyname(wchar_t ch, int isfunckey)
 
 	char *event_c = isfunckey ? keyname(ch) : key_name(ch);
 
+	if (!event_c)
+		return compat_wcsdup(L"UNKNOWN");
+
 	if (!strncmp(event_c, "KEY_", 4))
 		event_c += 4;
 	
