@@ -128,14 +128,14 @@ static int wt_input_process(struct stfl_widget *w, struct stfl_widget *fw, struc
 	}
 
 	// pos1 / home / Ctrl-A
-	if (stfl_matchbind(w, ch, isfunckey, L"home", L"HOME,^A")) {
+	if (stfl_matchbind(w, ch, isfunckey, L"home", L"HOME ^A")) {
 		stfl_widget_setkv_int(w, L"pos", 0);
 		fix_offset_pos(w);
 		return 1;
 	}
 
 	// end / Ctrl-E
-	if (stfl_matchbind(w, ch, isfunckey, L"end", L"END,^E")) {
+	if (stfl_matchbind(w, ch, isfunckey, L"end", L"END ^E")) {
 		stfl_widget_setkv_int(w, L"pos", text_len);
 		fix_offset_pos(w);
 		return 1;
@@ -155,7 +155,7 @@ static int wt_input_process(struct stfl_widget *w, struct stfl_widget *fw, struc
 	}
 
 	// backspace
-	if (stfl_matchbind(w, ch, isfunckey, L"backspace", L"BACKSPACE,^?")) {
+	if (stfl_matchbind(w, ch, isfunckey, L"backspace", L"BACKSPACE ^?")) {
 		if (pos == 0)
 			return 0;
 		wchar_t newtext[text_len];
