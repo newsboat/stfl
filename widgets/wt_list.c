@@ -125,7 +125,7 @@ static void wt_list_draw(struct stfl_widget *w, struct stfl_form *f, WINDOW *win
 	}
 }
 
-static int wt_list_process(struct stfl_widget *w, struct stfl_widget *fw, struct stfl_form *f, wchar_t ch, int is_function_key)
+static int wt_list_process(struct stfl_widget *w, struct stfl_widget *fw, struct stfl_form *f, wchar_t ch, int isfunckey)
 {
 	int pos = stfl_widget_getkv_int(w, L"pos", 0);
 	int maxpos = -1;
@@ -136,26 +136,26 @@ static int wt_list_process(struct stfl_widget *w, struct stfl_widget *fw, struct
 		c = c->next_sibling;
 	}
 
-	if (ch == KEY_UP && pos > 0) {
+	if (pos > 0 && stfl_matchbind(w, ch, isfunckey, L"up", L"UP")) {
 		stfl_widget_setkv_int(w, L"pos", pos-1);
 		fix_offset_pos(w);
 		return 1;
 	}
 		
-	if (ch == KEY_DOWN && pos < maxpos) {
+	if (pos < maxpos && stfl_matchbind(w, ch, isfunckey, L"down", L"DOWN")) {
 		stfl_widget_setkv_int(w, L"pos", pos+1);
 		fix_offset_pos(w);
 		return 1;
 	}
 	
-	if (ch == KEY_NPAGE) {
+	if (stfl_matchbind(w, ch, isfunckey, L"page_down", L"NPAGE")) {
 		if (pos < maxpos - w->h) stfl_widget_setkv_int(w, L"pos", pos + w->h);
 		else stfl_widget_setkv_int(w, L"pos", maxpos);
 		fix_offset_pos(w);
 		return 1;
 	}
 
-	if (ch == KEY_PPAGE) {
+	if (stfl_matchbind(w, ch, isfunckey, L"page_up", L"PPAGE")) {
 		if (pos > w->h) stfl_widget_setkv_int(w, L"pos", pos - w->h);
 		else stfl_widget_setkv_int(w, L"pos", 0);
 		fix_offset_pos(w);

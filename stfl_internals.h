@@ -141,6 +141,9 @@ extern wchar_t *stfl_widget_dump(struct stfl_widget *w, const wchar_t *prefix, i
 extern void stfl_style(WINDOW *win, const wchar_t *style);
 extern void stfl_widget_style(struct stfl_widget *w, struct stfl_form *f, WINDOW *win);
 
+extern wchar_t *stfl_keyname(wchar_t ch, int isfunckey);
+extern int stfl_matchbind(struct stfl_widget *w, wchar_t ch, int isfunckey, wchar_t *name, wchar_t *auto_desc);
+
 #ifdef __cplusplus
 }
 #endif

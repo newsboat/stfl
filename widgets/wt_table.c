@@ -584,13 +584,24 @@ static void wt_table_draw(struct stfl_widget *w, struct stfl_form *f, WINDOW *wi
 	}
 }
 
-static int wt_table_process(struct stfl_widget *w, struct stfl_widget *fw, struct stfl_form *f, wchar_t ch, int is_function_key)
+static int wt_table_process(struct stfl_widget *w, struct stfl_widget *fw, struct stfl_form *f, wchar_t ch, int isfunckey)
 {
 	struct table_data *d = w->internal_data;
 	struct stfl_widget *n, *c;
-	int i, j, k;
+	int i, j, k, event = 0;
 
-	if (ch != KEY_LEFT && ch != KEY_RIGHT && ch != KEY_UP && ch != KEY_DOWN)
+	if (stfl_matchbind(w, ch, isfunckey, L"left", L"LEFT"))
+		event = KEY_LEFT;
+	else
+	if (stfl_matchbind(w, ch, isfunckey, L"right", L"RIGHT"))
+		event = KEY_RIGHT;
+	else
+	if (stfl_matchbind(w, ch, isfunckey, L"up", L"UP"))
+		event = KEY_UP;
+	else
+	if (stfl_matchbind(w, ch, isfunckey, L"down", L"DOWN"))
+		event = KEY_DOWN;
+	else
 		return 0;
 
 	c = stfl_find_child_tree(w, fw);
@@ -601,7 +612,7 @@ static int wt_table_process(struct stfl_widget *w, struct stfl_widget *fw, struc
 		struct table_cell_data *m = d->map[i][j];
 		if (!m || m->w != c) continue;
 
-		switch (ch)
+		switch (event)
 		{
 		case KEY_LEFT:
 			for (k=i-1; k >= 0; k--) {

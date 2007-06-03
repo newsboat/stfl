@@ -468,6 +468,8 @@ static struct stfl_widget* stfl_gather_focus_widget(struct stfl_form* f) {
 
 void stfl_form_run(struct stfl_form *f, int timeout)
 {
+	wchar_t *on_handler = 0;
+
 	pthread_mutex_lock(&f->mtx);
 
 	if (f->event)
@@ -475,6 +477,9 @@ void stfl_form_run(struct stfl_form *f, int timeout)
 	f->event = 0;
 
 	if (timeout >= 0 && f->event_queue)
+		goto unshift_next_event;
+
+	if (timeout == -2)
 		goto unshift_next_event;
 
 	if (!f->root) {
@@ -532,30 +537,29 @@ void stfl_form_run(struct stfl_form *f, int timeout)
 		goto unshift_next_event;
 	}
 
+	wchar_t *on_event = stfl_keyname(wch, rc == KEY_CODE_YES);
+	int on_handler_len = wcslen(on_event) + 4;
+	on_handler = malloc(on_handler_len * sizeof(wchar_t));
+	swprintf(on_handler, on_handler_len, L"on_%ls", on_event);
+	free(on_event);
+
 	while (w) {
+		const wchar_t *event = stfl_widget_getkv_str(w, on_handler, 0);
+		if (event) {
+			stfl_form_event(f, wcsdup(event));
+			goto unshift_next_event;
+		}
+
 		if (w->type->f_process && w->type->f_process(w, fw, f, wch, rc == KEY_CODE_YES))
 			goto unshift_next_event;
+
+		if (stfl_widget_getkv_int(w, L"modal", 0))
+			goto generate_event;
+
 		w = w->parent;
 	}
 
-	if (wch == L'\r' || wch == L'\n') {
-		stfl_form_event(f, wcsdup(L"ENTER"));
-		goto unshift_next_event;
-	}
-
-	if (wch == 27) {
-		stfl_form_event(f, wcsdup(L"ESC"));
-		goto unshift_next_event;
-	}
-
-	if (rc == KEY_CODE_YES && KEY_F(0) <= wch && wch <= KEY_F(63)) {
-		wchar_t *event = malloc(4 * sizeof(wchar_t));
-		swprintf(event, 4, L"F%d", wch - KEY_F0);
-		stfl_form_event(f, event);
-		goto unshift_next_event;
-	}
-
-	if (wch == L'\t')
+	if (rc != KEY_CODE_YES && wch == L'\t')
 	{
 		struct stfl_widget *old_fw = fw = stfl_widget_by_id(f->root, f->current_focus_id);
 		do {
@@ -585,12 +589,8 @@ void stfl_form_run(struct stfl_form *f, int timeout)
 		goto unshift_next_event;
 	}
 
-	if (rc != KEY_CODE_YES) {
-		wchar_t *event = malloc(16 * sizeof(wchar_t));
-		swprintf(event, 16, L"CHAR(%u)", wch);
-		stfl_form_event(f, event);
-		goto unshift_next_event;
-	}
+generate_event:
+	stfl_form_event(f, stfl_keyname(wch, rc == KEY_CODE_YES));
 
 unshift_next_event:;
 	struct stfl_event *e = f->event_queue;
@@ -601,6 +601,7 @@ unshift_next_event:;
 	}
 
 	pthread_mutex_unlock(&f->mtx);
+	free(on_handler);
 }
 
 void stfl_form_reset()

@@ -170,23 +170,23 @@ static void wt_box_draw(struct stfl_widget *w, struct stfl_form *f, WINDOW *win)
 	}
 }
 
-static int wt_box_process(struct stfl_widget *w, struct stfl_widget *fw, struct stfl_form *f, wchar_t ch, int is_function_key)
+static int wt_box_process(struct stfl_widget *w, struct stfl_widget *fw, struct stfl_form *f, wchar_t ch, int isfunckey)
 {
 	struct box_data *d = w->internal_data;
 
 	if (d->type == 'H')
 	{
-		if (ch == KEY_LEFT)
+		if (stfl_matchbind(w, ch, isfunckey, L"left", L"LEFT"))
 			return stfl_focus_prev(w, fw, f);
-		if (ch == KEY_RIGHT)
+		if (stfl_matchbind(w, ch, isfunckey, L"right", L"RIGHT"))
 			return stfl_focus_next(w, fw, f);
 	}
 
 	if (d->type == 'V')
 	{
-		if (ch == KEY_UP)
+		if (stfl_matchbind(w, ch, isfunckey, L"up", L"UP"))
 			return stfl_focus_prev(w, fw, f);
-		if (ch == KEY_DOWN)
+		if (stfl_matchbind(w, ch, isfunckey, L"down", L"DOWN"))
 			return stfl_focus_next(w, fw, f);
 	}
 

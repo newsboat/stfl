@@ -109,44 +109,40 @@ static void wt_input_draw(struct stfl_widget *w, struct stfl_form *f, WINDOW *wi
 	}
 }
 
-static int wt_input_process(struct stfl_widget *w, struct stfl_widget *fw, struct stfl_form *f, wchar_t ch, int is_function_key)
+static int wt_input_process(struct stfl_widget *w, struct stfl_widget *fw, struct stfl_form *f, wchar_t ch, int isfunckey)
 {
 	int pos = stfl_widget_getkv_int(w, L"pos", 0);
-	int modal = stfl_widget_getkv_int(w, L"modal", 0);
 	const wchar_t *text = stfl_widget_getkv_str(w, L"text", L"");
 	int text_len = wcslen(text);
 
-	if (modal && ((ch == '\t') || (ch == KEY_LEFT && pos <= 0) || (ch == KEY_RIGHT && pos >= text_len) || (ch == KEY_UP) || (ch == KEY_DOWN)))
-		return 1;
-
-	if (ch == KEY_LEFT && pos > 0) {
+	if (pos > 0 && stfl_matchbind(w, ch, isfunckey, L"left", L"LEFT")) {
 		stfl_widget_setkv_int(w, L"pos", pos-1);
 		fix_offset_pos(w);
 		return 1;
 	}
 
-	if (ch == KEY_RIGHT && pos < text_len) {
+	if (pos < text_len && stfl_matchbind(w, ch, isfunckey, L"right", L"RIGHT")) {
 		stfl_widget_setkv_int(w, L"pos", pos+1);
 		fix_offset_pos(w);
 		return 1;
 	}
 
 	// pos1 / home / Ctrl-A
-	if (ch == KEY_HOME || ch == 1) {
+	if (stfl_matchbind(w, ch, isfunckey, L"home", L"HOME,^A")) {
 		stfl_widget_setkv_int(w, L"pos", 0);
 		fix_offset_pos(w);
 		return 1;
 	}
 
 	// end / Ctrl-E
-	if (ch == KEY_END || ch == 5) {
+	if (stfl_matchbind(w, ch, isfunckey, L"end", L"END,^E")) {
 		stfl_widget_setkv_int(w, L"pos", text_len);
 		fix_offset_pos(w);
 		return 1;
 	}
 
 	// delete
-	if (ch == KEY_DC) {
+	if (stfl_matchbind(w, ch, isfunckey, L"delete", L"DC")) {
 		if (pos == text_len)
 			return 0;
 		wchar_t newtext[text_len];
@@ -159,7 +155,7 @@ static int wt_input_process(struct stfl_widget *w, struct stfl_widget *fw, struc
 	}
 
 	// backspace
-	if (ch == KEY_BACKSPACE || ch == 127) {
+	if (stfl_matchbind(w, ch, isfunckey, L"backspace", L"BACKSPACE,^?")) {
 		if (pos == 0)
 			return 0;
 		wchar_t newtext[text_len];
@@ -173,7 +169,7 @@ static int wt_input_process(struct stfl_widget *w, struct stfl_widget *fw, struc
 	}
 
 	// 'normal' characters
-	if (!is_function_key && iswprint(ch)) {
+	if (!isfunckey && iswprint(ch)) {
 		wchar_t newtext[text_len + 2];
 		wmemcpy(newtext, text, pos);
 		newtext[pos] = ch;

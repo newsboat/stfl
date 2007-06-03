@@ -108,7 +108,7 @@ static void wt_textview_draw(struct stfl_widget *w, struct stfl_form *f, WINDOW 
 		f->cursor_x = f->cursor_y = -1;
 }
 
-static int wt_textview_process(struct stfl_widget *w, struct stfl_widget *fw, struct stfl_form *f, wchar_t ch, int is_function_key)
+static int wt_textview_process(struct stfl_widget *w, struct stfl_widget *fw, struct stfl_form *f, wchar_t ch, int isfunckey)
 {
 	//int pos = stfl_widget_getkv_int(w, "pos", 0);
 	int offset = stfl_widget_getkv_int(w,L"offset",0);
@@ -120,33 +120,33 @@ static int wt_textview_process(struct stfl_widget *w, struct stfl_widget *fw, st
 		c = c->next_sibling;
 	}
 
-	if (ch == KEY_UP && offset> 0) {
+	if (offset > 0 && stfl_matchbind(w, ch, isfunckey, L"up", L"UP")) {
 		stfl_widget_setkv_int(w, L"offset", offset-1);
 		
 		//fix_offset_pos(w);
 		return 1;
 	}
 		
-	if (ch == KEY_DOWN && offset < maxoffset) {
+	if (offset < maxoffset && stfl_matchbind(w, ch, isfunckey, L"down", L"DOWN")) {
 		stfl_widget_setkv_int(w, L"offset", offset+1);
 		//fix_offset_pos(w);
 		return 1;
 	}
 
-	if (ch == L' ') {
-		if ((offset + w->h - 1) < maxoffset) { // XXX: last page handling won't work with that
-			stfl_widget_setkv_int(w, L"offset", offset + w->h - 1);
-		} else {
-			stfl_widget_setkv_int(w, L"offset", maxoffset);
-		}
-		return 1;
-	}
-
-	if (ch == L'b' || ch == L'-') {
+	if (stfl_matchbind(w, ch, isfunckey, L"page_up", L"PPAGE")) {
 		if ((offset - w->h + 1) > 0) { // XXX: first page handling won't work with that
 			stfl_widget_setkv_int(w, L"offset", offset - w->h + 1);
 		} else {
 			stfl_widget_setkv_int(w, L"offset", 0);
+		}
+		return 1;
+	}
+
+	if (stfl_matchbind(w, ch, isfunckey, L"page_down", L"NPAGE")) {
+		if ((offset + w->h - 1) < maxoffset) { // XXX: last page handling won't work with that
+			stfl_widget_setkv_int(w, L"offset", offset + w->h - 1);
+		} else {
+			stfl_widget_setkv_int(w, L"offset", maxoffset);
 		}
 		return 1;
 	}

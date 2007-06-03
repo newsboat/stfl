@@ -19,7 +19,7 @@
 
 include Makefile.cfg
 
-CFLAGS += -I. -Wall -O0 -ggdb -D_GNU_SOURCE -fPIC
+CFLAGS += -I. -Wall -Os -ggdb -D_GNU_SOURCE -fPIC
 LDLIBS += -lncursesw
 
 all: libstfl.a example
@@ -28,7 +28,7 @@ example: LDFLAGS += -L.
 example: LDLIBS += -lstfl
 example: libstfl.a
 
-libstfl.a: public.o base.o parser.o dump.o style.o iconv.o \
+libstfl.a: public.o base.o parser.o dump.o style.o binding.o iconv.o \
            $(patsubst %.c,%.o,$(wildcard widgets/*.c))
 	rm -f $@
 	ar qc $@ $^
