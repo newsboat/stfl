@@ -20,6 +20,7 @@
  */
 
 #include "stfl_internals.h"
+#include "stfl_compat.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -35,7 +36,7 @@ static void extract_name(wchar_t **key, wchar_t **name)
 		return;
 	}
 
-	*name = wcsdup(*key+len+1);
+	*name = compat_wcsdup(*key+len+1);
 	*key = realloc(*key, sizeof(wchar_t)*(len+1));
 	(*key)[len] = 0;
 
@@ -52,7 +53,7 @@ static void extract_class(wchar_t **key, wchar_t **cls)
 		return;
 	}
 
-	*cls = wcsdup(*key+len+1);
+	*cls = compat_wcsdup(*key+len+1);
 	*key = realloc(*key, sizeof(wchar_t)*(len+1));
 	(*key)[len] = 0;
 }

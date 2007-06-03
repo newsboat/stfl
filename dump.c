@@ -20,6 +20,7 @@
  */
 
 #include "stfl_internals.h"
+#include "stfl_compat.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -43,7 +44,7 @@ static void newtxt(struct txtnode **o, const wchar_t *fmt, ...)
 	va_start(ap, fmt);
 	wchar_t buf[4096];
 	vswprintf(buf,4096, fmt, ap);
-	n->value = wcsdup(buf);
+	n->value = compat_wcsdup(buf);
 	if (n->value)
 		n->len = wcslen(n->value);
 	else

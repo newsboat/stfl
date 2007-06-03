@@ -20,6 +20,8 @@
  */
 
 #include "stfl_internals.h"
+#include "stfl_compat.h"
+
 #include <string.h>
 #include <stdlib.h>
 #include <wchar.h>
@@ -27,10 +29,10 @@
 wchar_t *stfl_keyname(wchar_t ch, int isfunckey)
 {
 	if (!isfunckey && (ch == L'\r' || ch == L'\n'))
-		return wcsdup(L"ENTER");
+		return compat_wcsdup(L"ENTER");
 
 	if (!isfunckey && ch == 27)
-		return wcsdup(L"ESC");
+		return compat_wcsdup(L"ESC");
 
 	if (isfunckey && KEY_F(0) <= ch && ch <= KEY_F(63)) {
 		wchar_t *name = malloc(4 * sizeof(wchar_t));

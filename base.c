@@ -20,6 +20,7 @@
  */
 
 #include "stfl_internals.h"
+#include "stfl_compat.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -129,7 +130,7 @@ struct stfl_kv *stfl_widget_setkv_str(struct stfl_widget *w, const wchar_t *key,
 	while (kv) {
 		if (!wcscmp(kv->key, key)) {
 			free(kv->value);
-			kv->value = wcsdup(value);
+			kv->value = compat_wcsdup(value);
 			return kv;
 		}
 		kv = kv->next;
@@ -137,8 +138,8 @@ struct stfl_kv *stfl_widget_setkv_str(struct stfl_widget *w, const wchar_t *key,
 
 	kv = calloc(1, sizeof(struct stfl_kv));
 	kv->widget = w;
-	kv->key = wcsdup(key);
-	kv->value = wcsdup(value);
+	kv->key = compat_wcsdup(key);
+	kv->value = compat_wcsdup(value);
 	kv->id = ++id_counter;
 	kv->next = w->kv_list;
 	w->kv_list = kv;
@@ -160,7 +161,7 @@ extern struct stfl_kv *stfl_setkv_by_name_str(struct stfl_widget *w, const wchar
 		return 0;
 
 	free(kv->value);
-	kv->value = wcsdup(value);
+	kv->value = compat_wcsdup(value);
 	return kv;
 }
 
@@ -533,7 +534,7 @@ void stfl_form_run(struct stfl_form *f, int timeout)
 	struct stfl_widget *w = fw;
 
 	if (rc == ERR) {
-		stfl_form_event(f, wcsdup(L"TIMEOUT"));
+		stfl_form_event(f, compat_wcsdup(L"TIMEOUT"));
 		goto unshift_next_event;
 	}
 
@@ -546,7 +547,7 @@ void stfl_form_run(struct stfl_form *f, int timeout)
 	while (w) {
 		const wchar_t *event = stfl_widget_getkv_str(w, on_handler, 0);
 		if (event) {
-			stfl_form_event(f, wcsdup(event));
+			stfl_form_event(f, compat_wcsdup(event));
 			goto unshift_next_event;
 		}
 
