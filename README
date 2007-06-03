@@ -489,7 +489,7 @@ textview
 ~~~~~~~~
 
 A widget for displaying multiline text. The text itself is stored within
-label child widgets. Implements the following variables:
+listitem child widgets. Implements the following variables:
 
 	bind_up, bind_down
 		The key bindings for scrolling up or down by line. Default

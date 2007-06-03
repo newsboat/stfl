@@ -71,7 +71,7 @@ retry_auto_desc:
 	while (*desc) {
 		desc += wcsspn(desc, L",");
 		int len = wcscspn(desc, L",");
-		if (!retry_auto_desc && len == 2 && wcsncmp(desc, L"**", 2))
+		if (!retry_auto_desc && len == 2 && !wcsncmp(desc, L"**", 2))
 			retry_auto_desc = 1;
 		if (len > 0 && len == event_len && !wcsncmp(desc, event, len)) {
 			free(event);
