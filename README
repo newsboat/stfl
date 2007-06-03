@@ -44,6 +44,27 @@ Building and Installing STFL
 Simply run 'make' and 'make install'. You might want to edit the Makefile.cfg
 file before building and installing STFL.
 
+In order to build a full-featured STFL with all scripting language bindings
+enabled you need to have the following packages installed (including the
+development packages):
+
+	ncursesw
+		The wide-character ncurses library. On some distributions
+		this might be part of the ncurses package, on other
+		distrubutions this might be an extra package.
+
+	SWIG
+		STFL is using SWIG for generating the Perl, Python and Ruby
+		language bindings.
+
+	Perl, Python, Ruby, SPL
+		In order to create the language bindings you need to have
+		the languages themself installed.
+
+Since STFL is a wide-character library it will only work on systems which
+do have wide-character support in the system libraries. This might not be
+the case for rather old operating systems.
+
 
 The Structured Terminal Forms Language
 --------------------------------------
@@ -236,6 +257,34 @@ printed using the style string 'fg=white' can't be seen on terminals with a
 white default background.
 
 
+Key and Keybinding Descriptions
+-------------------------------
+
+Key descriptings are strings describing a key press event. With some
+exceptions this are the return values of the ncurses keyname() and key_name()
+functions. The exceptions are:
+
+	ENTER
+		The return key has been pressed.
+
+	ESC
+		The escape key has been pressed.
+
+	F0 .. F63
+		A function key has been pressed.
+
+A key binding description is a comma-seperated list of key descriptions used
+in bind_* variables to bind keys to widget actions. Each widget provides
+default bindings for all its actions. If you want to extend the list of bind
+keys instead of overwriting them you must use the special key-description "**"
+in the keybinding description to refer to the default bindings.
+
+Key values can e.g. be dumped using the following little Perl script:
+
+perl -mstfl -le '$_ = stfl::create("label text:\"Press a key\"")->run(0);
+stfl::reset(); print;'
+
+
 The STFL Widget Library
 -----------------------
 
@@ -244,6 +293,16 @@ vbox and hbox
 
 This widgets simply layouts its child widgets vertically or horizontally
 repectively. The following variables are supported by both widgets:
+
+	bind_left, bind_right
+		The keybindings in a hbox for changing the focus to the
+		next or previous child widget. Default values are the
+		LEFT and RIGHT keys.
+
+	bind_up, bind_down
+		The keybindings in a vbox for changing the focus to the
+		next or previous child widget. Default values are the UP
+		and DOWN keys.
 
 	style_normal
 		The background style.
@@ -296,6 +355,26 @@ input
 A simple input widget for one line of text input. The following variables are
 supported by this widget:
 
+	bind_left, bind_right
+		Move the cursor left and right. Default values are the LEFT
+		and RIGHT keys.
+
+	bind_home
+		Move the cursor to the first character. Default values are
+		the HOME key or Ctrl-A.
+		
+	bind_end
+		Move the cursor after the last character. Default values are
+		the END key or Ctrl-E.
+
+	bind_delete
+		Delete the character under the cursor. Default value is the
+		DEL key.
+
+	bind_backspace
+		Delete the character before the cursor. Default value is the
+		BACKSPACE key.
+		
 	style_normal
 		The style of this widget when it does not have the
 		focus.
@@ -313,16 +392,16 @@ supported by this widget:
 		The offset of the text displayed in the input box
 		(when the text is larger then the input box).
 
-	modal
-		As long as this variable is set to 1 the widget doesn't
-		give away the focus once it got it.
-
 table
 ~~~~~
 
 The most important container widget. The special widget 'tablebr' is used to
 mark the begin of a new table row. The following variables are supported by
 this widget:
+
+	bind_left, bind_right, bind_up, bind_down
+		The keybindings for changing the focus within a table.
+		Default values are the UP, DOWN, LEFT and RIGHT keys.
 
 	style_normal
 		The style for the table bordes.
@@ -364,32 +443,102 @@ this widget:
 list
 ~~~~
 
-DOCUMENTME
+The list widget can be used to display a list of items, one per line. The
+items are stored as 'listitem' child widgets of the 'list' widget. When
+there are more items then the list widget has lines the list widget is
+automatically scrolling. The list widget implements the following variables:
 
-button
-~~~~~~
+	bind_up, bind_down
+		The key bindings for scrolling up or down by line. Default
+		values are the UP and DOWN keys.
 
-DOCUMENTME  (Not implemented yet)
+	bind_page_up, bind_page_down
+		The key bindings for scrolling up or down by page. Default
+		values are the PAGE_UP and PAGE_DOWN keys.
 
-checkbox
+	style_focus
+		Style of the active list item when the widget has the focus.
+
+	style_selected
+		Style of the active list item when the widget has not the
+		focus.
+
+	style_normal
+		Style of the currently not active list items.
+
+	pos
+		The number of the current list item
+
+	pos_name
+		The widget name of the current list item.
+
+	offset
+		The numer of the list item displayed in the first line (this
+		becomes >0 when scrolling).
+
+
+listitem
 ~~~~~~~~
 
-DOCUMENTME  (Not implemented yet)
+An in a list widget. Implements the following variables:
 
-textarea
+	text
+		The text displayed in this list item.
+
+textview
 ~~~~~~~~
 
-DOCUMENTME  (Not implemented yet)
+A widget for displaying multiline text. The text itself is stored within
+label child widgets. Implements the following variables:
 
-virtual
-~~~~~~~
+	bind_up, bind_down
+		The key bindings for scrolling up or down by line. Default
+		values are the UP and DOWN keys.
 
-DOCUMENTME  (Not implemented yet)
+	bind_page_up, bind_page_down
+		The key bindings for scrolling up or down by page. Default
+		values are the PAGE_UP and PAGE_DOWN keys.
 
-overlay
-~~~~~~~
+	style_normal
+		The style the text itself is displayed.
 
-DOCUMENTME  (Not implemented yet)
+	style_end
+		The style used for the EOT-Markers.
+
+	offset
+		The number of the first line displayed
+		(becomes >0 when scrolling).
+
+
+Common Variables
+----------------
+
+There are some variables which are used by the STFL core to configure some
+widget-independent features.
+
+modal
+~~~~~
+
+A widget which has the modal variable set to '1' will not pass any events
+to its parent widgets. Eighter the event is handled by the widget itself or
+it is returned directly to the caller of stfl_run().
+
+autobind
+~~~~~~~~
+
+Setting autobind to '0' disables all automatically assigned keybindings for
+this widget. Actions which aren't set explicitely bind to keys using the
+bind_* variables are left unbind and can't be triggered using the user
+interface.
+
+on_*
+~~~~
+
+The on_* variables can be used to catch keypresses in this widget and return
+the value of the on_* variable to the caller of stfl_run(). The on_* variables
+are evaluated before the keypresses are passed to the widget. The '*' part
+of the on_* variables is a key description. E.g. "on_^X:foobar" will let
+stfl_run() return the string "foobar" when Ctrl-X is beeing pressed.
 
 
 The Common STFL Scripting Language API
@@ -492,28 +641,26 @@ stfl_run(form, timeout)
 ~~~~~~~~~~~~~~~~~~~~~~~
 
 Return the next event. If no more prior generated events are waiting display
-the form and process one input character. The following events are generated
-directly by the STFL core:
-
-	TIMEOUT
-		The timeout has been reached.
-
-	ENTER
-		The return key has been pressed.
-
-	ESC
-		The escape key has been pressed.
-
-	F0 .. F63
-		A function key has been pressed.
+the form and process one input character. The event string can be an undefined
+value when something chaned in the form (e.g. the user changed the focus of
+the current widget) but all inputs have been handled internally inside of STFL.
+The event string can be "TIMEOUT" when the timeout has been reached, a key
+description is key has been pressed that is not beeing hadled internally in
+STFL or the value of an on_* variable can be returned if a keypress has been
+catched using such a variable.
 
 The 2nd parameter is a timeout in ms. When no key has been pressed until this
-timeout has been reached. Set this parameter to 0 to disable the timeout.
+timeout has been reached the function returns with a "TIMEOUT" event. Set this
+parameter to 0 to disable the timeout.
 
 When the timeout parameter is set to -1 the form is displayed independent of
 the current status of the event queue and the function returns right after
 displaying the form without handling any input characters. In this mode always
 an undefined value is returned.
+
+When the timeout parameter is set to -2 the displayed is not updated and the
+next pending event is returned. If there are no pending events an undefined
+value is returned.
 
 stfl_reset()
 ~~~~~~~~~~~~
@@ -619,7 +766,11 @@ stfl_error()
 ~~~~~~~~~~~~
 
 Return the error status of the last STFL call. This is undefined when no error
-occoured and the error message otherwise.
+occoured and the error message otherwise. An error could e.g. be a parser
+error for broken STFL code.
+
+WARNING: This is a planned feature! This version of STFL simply calls abort()
+if an internal error is catched.
 
 stfl_error_action(mode)
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -644,30 +795,54 @@ parameter:
 
 The default mode is "interactive".
 
+WARNING: This is a planned feature! This version of STFL simply calls abort()
+if an internal error is catched.
+
 
 Pseudo Variables
 ----------------
 
-DOCUMENTME
+When a widget has a name (declared using the 'widget[name]' syntax in the STFL
+code), there are also some special pseudo-variables which can only be accessed
+for reading. Note that this pseudo-variables do only have valid values after
+the widget has been drawed already. So it is always a good idea to run
+stfl_run() with a timeout of -1 before accessing the pseudo-variables.
 
+widgetname:x
+~~~~~~~~~~~~
 
-Event Handler Variables
------------------------
+The absolute x-position of the widget on the screen. (from the left border)
 
-DOCUMENTME  (Not implemented yet)
+widgetname:y
+~~~~~~~~~~~~
 
+The absolute y-position of the widget on the screen. (from the upper border)
 
-STFL Internals
---------------
+widgetname:w
+~~~~~~~~~~~~
 
-DOCUMENTME
+The width of the widget.
+
+widgetname:h
+~~~~~~~~~~~~
+
+The height of the widget.
+
+widgetname:minw
+~~~~~~~~~~~~~~~
+
+The minimal width (i.e. before expanding) of the widget.
+
+widgetname:minh
+~~~~~~~~~~~~~~~
+
+The minimal height (i.e. before expanding) of the widget.
 
 
 TODOs
 -----
 
 - Implement so far unimplemented widgets
-- Common 'on*' event handler variables
 - Missing error handling and reporting
 - Implement stfl_lookup() function
 
