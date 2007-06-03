@@ -563,6 +563,9 @@ void stfl_form_run(struct stfl_form *f, int timeout)
 	if (rc != KEY_CODE_YES && wch == L'\t')
 	{
 		struct stfl_widget *old_fw = fw = stfl_widget_by_id(f->root, f->current_focus_id);
+		if (!fw)
+			goto generate_event;
+
 		do {
 			if (fw->first_child)
 				fw = fw->first_child;

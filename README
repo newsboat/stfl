@@ -267,14 +267,20 @@ functions. The exceptions are:
 	ENTER
 		The return key has been pressed.
 
+	SPACE
+		The space key has been pressed.
+
+	TAB
+		The tabulator key has been pressed.
+
 	ESC
 		The escape key has been pressed.
 
 	F0 .. F63
 		A function key has been pressed.
 
-A key binding description is a comma-seperated list of key descriptions used
-in bind_* variables to bind keys to widget actions. Each widget provides
+A key binding description is a whitespace-seperated list of key descriptions
+used in bind_* variables to bind keys to widget actions. Each widget provides
 default bindings for all its actions. If you want to extend the list of bind
 keys instead of overwriting them you must use the special key-description "**"
 in the keybinding description to refer to the default bindings.

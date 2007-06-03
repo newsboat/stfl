@@ -31,6 +31,12 @@ wchar_t *stfl_keyname(wchar_t ch, int isfunckey)
 	if (!isfunckey && (ch == L'\r' || ch == L'\n'))
 		return compat_wcsdup(L"ENTER");
 
+	if (!isfunckey && ch == L' ')
+		return compat_wcsdup(L"SPACE");
+
+	if (!isfunckey && ch == L'\t')
+		return compat_wcsdup(L"TAB");
+
 	if (!isfunckey && ch == 27)
 		return compat_wcsdup(L"ESC");
 
@@ -71,8 +77,8 @@ int stfl_matchbind(struct stfl_widget *w, wchar_t ch, int isfunckey, wchar_t *na
 
 retry_auto_desc:
 	while (*desc) {
-		desc += wcsspn(desc, L",");
-		int len = wcscspn(desc, L",");
+		desc += wcsspn(desc, L" \t\n\r");
+		int len = wcscspn(desc, L" \t\n\r");
 		if (!retry_auto_desc && len == 2 && !wcsncmp(desc, L"**", 2))
 			retry_auto_desc = 1;
 		if (len > 0 && len == event_len && !wcsncmp(desc, event, len)) {
