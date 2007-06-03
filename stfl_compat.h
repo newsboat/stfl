@@ -28,7 +28,7 @@
 
 static inline wchar_t *compat_wcsdup(const wchar_t *src)
 {
-	size_t n = wcslen(src) * sizeof(wchar_t);
+	size_t n = (wcslen(src) + 1) * sizeof(wchar_t);
 	wchar_t *dest = malloc(n);
 	memcpy(dest, src, n);
 	return dest;
