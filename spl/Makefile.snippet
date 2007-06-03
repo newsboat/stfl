@@ -26,7 +26,7 @@ spl/mod_stfl.so: CFLAGS += $(shell spl-config --cflags)
 
 spl/mod_stfl.so: libstfl.a stfl.h spl/mod_stfl.c
 	gcc -shared -fPIC $(CFLAGS) $(LDFLAGS) spl/mod_stfl.c \
-		-L. -lstfl $(LDLIBS) -o spl/mod_stfl.so
+		-L. libstfl.a $(LDLIBS) -o spl/mod_stfl.so
 
 install_spl: spl/mod_stfl.so
 	mkdir -p $(DESTDIR)$(prefix)/lib/spl_modules

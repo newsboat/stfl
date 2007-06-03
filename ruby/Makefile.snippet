@@ -24,7 +24,7 @@ install: install_ruby
 
 ruby/build_ok: libstfl.a stfl.h ruby/stfl.i swig/*.i
 	cd ruby && swig -ruby stfl.i && ruby extconf.rb
-	$(MAKE) -C ruby clean && $(MAKE) -C ruby LIBS+="-L.. -lstfl -lncursesw" CFLAGS+="-I.."
+	$(MAKE) -C ruby clean && $(MAKE) -C ruby LIBS+="../libstfl.a -lncursesw" CFLAGS+="-I.."
 	touch ruby/build_ok
 
 install_ruby: ruby/build_ok

@@ -27,7 +27,7 @@ install: install_python
 python/_stfl.so python/stfl.py python/stfl.pyc: libstfl.a stfl.h python/stfl.i swig/*.i
 	cd python && swig -python stfl.i
 	gcc -shared -fPIC python/stfl_wrap.c -I/usr/include/python$(PYTHON_VERSION) \
-		-I. -L. -lstfl -lncursesw -o python/_stfl.so
+		-I. libstfl.a -lncursesw -o python/_stfl.so
 	cd python && python -c 'import stfl'
 
 install_python: python/_stfl.so python/stfl.py python/stfl.pyc
