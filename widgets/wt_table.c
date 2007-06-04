@@ -221,6 +221,7 @@ static void wt_table_prepare(struct stfl_widget *w, struct stfl_form *f)
 	for (col_counter=0; col_counter < d->cols; col_counter++)
 	{
 		struct table_cell_data *m = d->map[col_counter][row_counter];
+		if(m==NULL) continue;
 		m->mastercell->mc_border_l = max(m->mastercell->mc_border_l, m->border_l);
 		m->mastercell->mc_border_r = max(m->mastercell->mc_border_r, m->border_r);
 		m->mastercell->mc_border_t = max(m->mastercell->mc_border_t, m->border_t);
