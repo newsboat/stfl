@@ -155,7 +155,7 @@ static int wt_input_process(struct stfl_widget *w, struct stfl_widget *fw, struc
 	}
 
 	// backspace
-	if (stfl_matchbind(w, ch, isfunckey, L"backspace", L"BACKSPACE ^?")) {
+	if (stfl_matchbind(w, ch, isfunckey, L"backspace", L"BACKSPACE")) {
 		if (pos == 0)
 			return 0;
 		wchar_t newtext[text_len];

@@ -28,25 +28,35 @@
 
 wchar_t *stfl_keyname(wchar_t ch, int isfunckey)
 {
-	if (!isfunckey && (ch == L'\r' || ch == L'\n'))
-		return compat_wcsdup(L"ENTER");
+	if (!isfunckey)
+	{
+		if (ch == L'\r' || ch == L'\n')
+			return compat_wcsdup(L"ENTER");
 
-	if (!isfunckey && ch == L' ')
-		return compat_wcsdup(L"SPACE");
+		if (ch == L' ')
+			return compat_wcsdup(L"SPACE");
 
-	if (!isfunckey && ch == L'\t')
-		return compat_wcsdup(L"TAB");
+		if (ch == L'\t')
+			return compat_wcsdup(L"TAB");
 
-	if (!isfunckey && ch == 27)
-		return compat_wcsdup(L"ESC");
+		if (ch == 27)
+			return compat_wcsdup(L"ESC");
 
-	if (isfunckey && KEY_F(0) <= ch && ch <= KEY_F(63)) {
+		if (ch == 127)
+			return compat_wcsdup(L"BACKSPACE");
+
+		wchar_t *ret = compat_wcsdup(L" ");
+		ret[0] = ch;
+		return ret;
+	}
+
+	if (KEY_F(0) <= ch && ch <= KEY_F(63)) {
 		wchar_t *name = malloc(4 * sizeof(wchar_t));
 		swprintf(name, 4, L"F%d", ch - KEY_F0);
 		return name;
 	}
 
-	char *event_c = isfunckey ? keyname(ch) : key_name(ch);
+	char *event_c = keyname(ch);
 
 	if (!event_c)
 		return compat_wcsdup(L"UNKNOWN");

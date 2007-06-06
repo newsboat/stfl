@@ -24,9 +24,7 @@ LDLIBS += -lncursesw
 
 all: libstfl.a example
 
-example: LDFLAGS += -L.
-example: LDLIBS += -lstfl
-example: libstfl.a
+example: libstfl.a example.o
 
 libstfl.a: public.o base.o parser.o dump.o style.o binding.o iconv.o \
            $(patsubst %.c,%.o,$(wildcard widgets/*.c))
