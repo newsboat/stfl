@@ -31,8 +31,8 @@ python/_stfl.so python/stfl.py python/stfl.pyc: libstfl.a stfl.h python/stfl.i s
 	cd python && python -c 'import stfl'
 
 install_python: python/_stfl.so python/stfl.py python/stfl.pyc
-	mkdir -p $(DESTDIR)/usr/lib/python$(PYTHON_VERSION)/lib-dynload/
-	cp python/_stfl.so $(DESTDIR)/usr/lib/python$(PYTHON_VERSION)/lib-dynload/
-	cp python/stfl.pyc $(DESTDIR)/usr/lib/python$(PYTHON_VERSION)/
-	cp python/stfl.py $(DESTDIR)/usr/lib/python$(PYTHON_VERSION)/
+	mkdir -p $(DESTDIR)$(prefix)/lib/python$(PYTHON_VERSION)/lib-dynload/
+	cp python/_stfl.so $(DESTDIR)$(prefix)/lib/python$(PYTHON_VERSION)/lib-dynload/
+	cp python/stfl.pyc $(DESTDIR)$(prefix)/lib/python$(PYTHON_VERSION)/
+	cp python/stfl.py $(DESTDIR)$(prefix)/lib/python$(PYTHON_VERSION)/
 
