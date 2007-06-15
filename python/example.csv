@@ -1,0 +1,11 @@
+extension,name,mimetype
+csv,comma separated values,text/plain
+xml,extensible markup language,application/xml
+ini,ini file (?),text/plain
+ogg,ogg container,application/ogg
+pdf,portable document format,application/pdf
+o,object file,application/x-object
+so,shared library,application/x-sharedlib
+png,portable network graphics,image/png
+bz2,bz2 compressed data,application/x-bzip2
+tar,"tar ball (""tape archive"")",application/x-tar
