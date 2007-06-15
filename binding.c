@@ -45,8 +45,17 @@ wchar_t *stfl_keyname(wchar_t ch, int isfunckey)
 		if (ch == 127)
 			return compat_wcsdup(L"BACKSPACE");
 
-		wchar_t *ret = compat_wcsdup(L" ");
-		ret[0] = ch;
+		wchar_t *ret;
+		if (ch < 32) {
+			const char * key = keyname(ch);
+			unsigned int keylen = strlen(key) + 1, i;
+			ret = malloc(keylen * sizeof(wchar_t));
+			for (i=0; i<keylen; i++)
+				ret[i] = key[i];
+		} else {
+			ret = compat_wcsdup(L" ");
+			ret[0] = ch;
+		}
 		return ret;
 	}
 
@@ -56,7 +65,7 @@ wchar_t *stfl_keyname(wchar_t ch, int isfunckey)
 		return name;
 	}
 
-	char *event_c = keyname(ch);
+	const char *event_c = keyname(ch);
 
 	if (!event_c)
 		return compat_wcsdup(L"UNKNOWN");
