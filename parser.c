@@ -27,6 +27,135 @@
 #include <stdlib.h>
 #include <assert.h>
 
+#define MYWCSCSPN_SKIP_QUOTED	0x01
+#define MYWCSCSPN_SKIP_NAMES	0x02
+
+static size_t mywcscspn(const wchar_t *wcs, const wchar_t *reject, int flags)
+{
+	enum {
+		PLAIN,
+		NAME_BLOCK,
+		SINGLE_QUOTE,
+		SINGLE_QUOTE_NAME,
+		DOUBLE_QUOTE,
+		DOUBLE_QUOTE_NAME,
+	} state = PLAIN;
+
+	int len = 0;
+	int i;
+
+	while (1)
+	{
+		if (!wcs[len])
+			return len;
+
+		switch (state)
+		{
+		case PLAIN:
+			if ((flags & MYWCSCSPN_SKIP_NAMES) && (wcs[len] == L'[')) {
+				state = NAME_BLOCK;
+				break;
+			}
+			if ((flags & MYWCSCSPN_SKIP_QUOTED) && (wcs[len] == L'\'')) {
+				state = SINGLE_QUOTE;
+				break;
+			}
+			if ((flags & MYWCSCSPN_SKIP_QUOTED) && (wcs[len] == L'\"')) {
+				state = DOUBLE_QUOTE;
+				break;
+			}
+			for (i=0; reject[i]; i++)
+				if (wcs[len] == reject[i])
+					return len;
+			break;
+		case NAME_BLOCK:
+			if ((flags & MYWCSCSPN_SKIP_QUOTED) && (wcs[len] == L'\'')) {
+				state = SINGLE_QUOTE_NAME;
+				break;
+			}
+			if ((flags & MYWCSCSPN_SKIP_QUOTED) && (wcs[len] == L'\"')) {
+				state = DOUBLE_QUOTE_NAME;
+				break;
+			}
+			if (wcs[len] == L']')
+				state = PLAIN;
+			break;
+		case SINGLE_QUOTE:
+		case SINGLE_QUOTE_NAME:
+			if (wcs[len] == L'\'')
+				state = state == SINGLE_QUOTE ? PLAIN : NAME_BLOCK;
+			break;
+		case DOUBLE_QUOTE:
+		case DOUBLE_QUOTE_NAME:
+			if (wcs[len] == L'\"')
+				state = state == DOUBLE_QUOTE ? PLAIN : NAME_BLOCK;
+			break;
+		}
+
+		len++;
+	}
+}
+
+static wchar_t *unquote(const wchar_t *text, int tlen)
+{
+	int len_v = 0, i, j;
+	wchar_t *value;
+
+	if (!text)
+		return 0;
+
+	for (i=0; text[i] && (i<tlen || tlen<0); i++)
+	{
+		if (text[i] == L'\'')
+			while (1) {
+				if (++i == tlen && tlen >= 0)
+					goto finish_len_v_loop;
+				if (!text[i] || text[i] == L'\'') break;
+				len_v++;
+			}
+		else
+		if (text[i] == L'\"')
+			while (1) {
+				if (++i == tlen && tlen >= 0)
+					goto finish_len_v_loop;
+				if (!text[i] || text[i] == L'\"') break;
+				len_v++;
+			}
+		else
+			len_v++;
+finish_len_v_loop:;
+	}
+
+	value = malloc(sizeof(wchar_t)*(len_v+1));
+
+	for (i=j=0; text[i] && (i<tlen || tlen<0); i++)
+	{
+		if (text[i] == L'\'')
+			while (1) {
+				if (++i == tlen && tlen >= 0)
+					goto finish_copy_loop;
+				if (!text[i] || text[i] == L'\'') break;
+				value[j++] = text[i];
+			}
+		else
+		if (text[i] == L'\"')
+			while (1) {
+				if (++i == tlen && tlen >= 0)
+					goto finish_copy_loop;
+				if (!text[i] || text[i] == L'\"') break;
+				value[j++] = text[i];
+			}
+		else
+			value[j++] = text[i];
+finish_copy_loop:;
+	}
+
+	value[j] = 0;
+	assert(j == len_v);
+
+	return value;
+}
+
 static void extract_name(wchar_t **key, wchar_t **name)
 {
 	int len = wcscspn(*key, L"[");
@@ -40,7 +169,7 @@ static void extract_name(wchar_t **key, wchar_t **name)
 	*key = realloc(*key, sizeof(wchar_t)*(len+1));
 	(*key)[len] = 0;
 
-	len = wcscspn(*name, L"]");
+	len = mywcscspn(*name, L"]", MYWCSCSPN_SKIP_QUOTED);
 	(*name)[len] = 0;
 }
 
@@ -60,7 +189,7 @@ static void extract_class(wchar_t **key, wchar_t **cls)
 
 static int read_type(const wchar_t **text, wchar_t **type, wchar_t **name, wchar_t **cls)
 {
-	int len = wcscspn(*text, L" \t\r\n:{}");
+	int len = mywcscspn(*text, L" \t\r\n:{}", MYWCSCSPN_SKIP_QUOTED|MYWCSCSPN_SKIP_NAMES);
 
 	if ((*text)[len] == L':' || len == 0)
 		return 0;
@@ -78,7 +207,7 @@ static int read_type(const wchar_t **text, wchar_t **type, wchar_t **name, wchar
 
 static int read_kv(const wchar_t **text, wchar_t **key, wchar_t **name, wchar_t **value)
 {
-	int len_k = wcscspn(*text, L" \t\r\n:{}");
+	int len_k = mywcscspn(*text, L" \t\r\n:{}", MYWCSCSPN_SKIP_QUOTED|MYWCSCSPN_SKIP_NAMES);
 
 	if ((*text)[len_k] != L':' || len_k == 0)
 		return 0;
@@ -90,39 +219,9 @@ static int read_kv(const wchar_t **text, wchar_t **key, wchar_t **name, wchar_t 
 
 	extract_name(key, name);
 
-	int len_v = 0, i = 0, j = 0;
-	while ((*text)[i] && (*text)[i] != ' ' && (*text)[i] != L'{' && (*text)[i] != L'}' &&
-	       (*text)[i] != L'\t' && (*text)[i] != L'\r' && (*text)[i] != L'\n')
-	{
-		if ((*text)[i] == L'\'')
-			while ((*text)[++i] != L'\'') len_v++;
-		else
-		if ((*text)[i] == L'\"')
-			while ((*text)[++i] != L'\"') len_v++;
-		len_v++;
-		i++;
-	}
-
-	*value = malloc(sizeof(wchar_t)*(len_v+1));
-	i = 0;
-
-	while ((*text)[i] && (*text)[i] != L' ' && (*text)[i] != L'{' && (*text)[i] != L'}' &&
-	       (*text)[i] != L'\t' && (*text)[i] != L'\r' && (*text)[i] != L'\n')
-	{
-		if ((*text)[i] == L'\'')
-			while ((*text)[++i] != L'\'')
-				(*value)[j++] = (*text)[i];
-		else
-		if ((*text)[i] == L'\"')
-			while ((*text)[++i] != L'\"')
-				(*value)[j++] = (*text)[i];
-		else
-			(*value)[j++] = (*text)[i];
-		i++;
-	}
-	
-	(*value)[j] = 0;
-	*text += i;
+	int qval_len = mywcscspn(*text, L" \t\r\n{}", MYWCSCSPN_SKIP_QUOTED);
+	*value = unquote(*text, qval_len);
+	*text += qval_len;
 
 	return 1;
 }
@@ -273,7 +372,8 @@ struct stfl_widget *stfl_parser(const wchar_t *text)
 				}
 
 				n->parser_indent = indenting;
-				n->name = name;
+				n->name = unquote(name, -1);
+				free(name);
 				n->cls = cls;
 				current = n;
 			}
@@ -283,7 +383,8 @@ struct stfl_widget *stfl_parser(const wchar_t *text)
 				struct stfl_kv *kv = stfl_widget_setkv_str(current, key, value);
 				if (kv->name)
 					free(kv->name);
-				kv->name = name;
+				kv->name = unquote(name, -1);
+				free(name);
 
 				free(key);
 				free(value);
@@ -303,7 +404,8 @@ struct stfl_widget *stfl_parser(const wchar_t *text)
 
 			root = n;
 			current = n;
-			n->name = name;
+			n->name = unquote(name, -1);
+			free(name);
 			n->cls = cls;
 		}
 
@@ -320,7 +422,8 @@ struct stfl_widget *stfl_parser(const wchar_t *text)
 				struct stfl_kv *kv = stfl_widget_setkv_str(current, key, value);
 				if (kv->name)
 					free(kv->name);
-				kv->name = name;
+				kv->name = unquote(name, -1);
+				free(name);
 
 				free(key);
 				free(value);
@@ -385,12 +488,12 @@ struct stfl_widget *stfl_parser_file(const char *filename)
 	size_t rc = mbstowcs(wtext, text, wtextsize);
 	assert(rc != (size_t)-1);
 
-/*
+#if 0
 	fprintf(stderr,"strlen(text) = %u wcslen(wtext) = %u rc = %u wtextsize = %u\n", strlen(text), wcslen(wtext), rc, wtextsize);
 	fprintf(stderr,"this is where is fucked up: `%lc' `%lc' `%lc' `%lc' `%lc'\n",text1[0],text1[1],text1[2],text1[3],text1[4]);
 	fprintf(stderr,"original: `%s'\n", text);
 	fprintf(stderr,"converted: `%ls'\n", wtext);
-	*/
+#endif
 
 	struct stfl_widget *w = stfl_parser(wtext);
 	free(text);

@@ -74,6 +74,9 @@ const wchar_t *stfl_get(struct stfl_form *f, const wchar_t *name)
 		struct stfl_widget *w = stfl_widget_by_name(f->root, w_name);
 		static wchar_t ret_buffer[16];
 
+		if (w == 0)
+			goto this_is_not_a_pseudo_var;
+
 		if (!wcscmp(pseudovar_sep+1, L"x")) {
 			swprintf(ret_buffer, 16, L"%d", w->x);
 			pthread_mutex_unlock(&f->mtx);
@@ -103,15 +106,12 @@ const wchar_t *stfl_get(struct stfl_form *f, const wchar_t *name)
 			pthread_mutex_unlock(&f->mtx);
 			return checkret(ret_buffer);
 		}
-		pthread_mutex_unlock(&f->mtx);
-		return checkret(0);
 	}
 
-	{
-		const wchar_t * tmpstr = stfl_getkv_by_name_str(f->root, name ? name : L"", 0);
-		pthread_mutex_unlock(&f->mtx);
-		return checkret(tmpstr);
-	}
+this_is_not_a_pseudo_var:;
+	const wchar_t * tmpstr = stfl_getkv_by_name_str(f->root, name ? name : L"", 0);
+	pthread_mutex_unlock(&f->mtx);
+	return checkret(tmpstr);
 }
 
 void stfl_set(struct stfl_form *f, const wchar_t *name, const wchar_t *value)

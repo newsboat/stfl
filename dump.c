@@ -75,15 +75,22 @@ static void mydump(struct stfl_widget *w, const wchar_t *prefix, int focus_id, s
 	if (w->cls)
 		newtxt(txt, L"#%ls", w->cls);
 
-	if (w->name)
-		newtxt(txt, L"[%ls%ls]", prefix, w->name);
+	if (w->name) {
+		newtxt(txt, L"[");
+		myquote(txt, prefix);
+		myquote(txt, w->name);
+		newtxt(txt, L"]");
+	}
 
 	struct stfl_kv *kv = w->kv_list;
 	while (kv)
 	{
-		if (kv->name)
-			newtxt(txt, L" %ls[%ls%ls]:", kv->key, prefix, kv->name);
-		else
+		if (kv->name) {
+			newtxt(txt, L" %ls[", kv->key);
+			myquote(txt, prefix);
+			myquote(txt, kv->name);
+			newtxt(txt, L"]:");
+		} else
 			newtxt(txt, L" %ls:", kv->key);
 
 		myquote(txt, kv->value);
