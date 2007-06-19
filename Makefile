@@ -19,8 +19,9 @@
 
 include Makefile.cfg
 
-CFLAGS += -I. -Wall -Os -ggdb -D_GNU_SOURCE -fPIC
-LDLIBS += -lncursesw
+export CC = gcc
+export CFLAGS += -I. -Wall -Os -ggdb -D_GNU_SOURCE -fPIC
+export LDLIBS += -lncursesw
 
 all: libstfl.a example
 
