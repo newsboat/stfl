@@ -41,10 +41,12 @@ clean:
 	rm -f python/stfl.py python/stfl.pyc python/_stfl.so 
 	rm -f python/stfl_wrap.c python/stfl_wrap.o
 	rm -f ruby/Makefile ruby/stfl_wrap.c ruby/stfl_wrap.o
-	rm -f ruby/stfl.so ruby/build_ok
+	rm -f ruby/stfl.so ruby/build_ok Makefile.deps_new
 
-Makefile.deps: *.c *.h
-	$(CC) -MM *.c > Makefile.deps
+Makefile.deps: *.c widgets/*.c *.h
+	$(CC) -I. -MM *.c > Makefile.deps_new
+	$(CC) -I. -MM widgets/*.c | sed -r 's,^wt_[^ ]*\.o: ,widgets/&,' >> Makefile.deps_new
+	mv -f Makefile.deps_new Makefile.deps
 
 install: all
 	mkdir -p $(DESTDIR)$(prefix)/lib
