@@ -1,6 +1,6 @@
 /*
  *  STFL - The Structured Terminal Forms Language/Library
- *  Copyright (C) 2006  Clifford Wolf <clifford@clifford.at>
+ *  Copyright (C) 2006, 2007  Clifford Wolf <clifford@clifford.at>
  *  Copyright (C) 2006  Andreas Krennmair <ak@synflood.at>
  *
  *  This program is free software; you can redistribute it and/or modify

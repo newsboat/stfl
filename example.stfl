@@ -20,6 +20,12 @@
 *
 
 vbox
+  label[label one]
+    text[label one text]:"Line number one"
+  label["2nd label"]
+    text[also possible to use : here now]:"Fun! Fun! Fun!"
+  label["quotes are needed for a closing bracket: ]"]
+    text[c_like_names_are_still_recommended_thought]:"Whatever"
 
   label
     .expand:0
