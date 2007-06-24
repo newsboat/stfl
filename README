@@ -63,7 +63,7 @@ development packages):
 
 Since STFL is a wide-character library it will only work on systems which
 do have wide-character support in the system libraries. This might not be
-the case for rather old operating systems.
+the case for in older Linux distributions or other UNIXes.
 
 
 The Structured Terminal Forms Language
