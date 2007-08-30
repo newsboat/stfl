@@ -21,16 +21,17 @@
 *
 
 vbox
-  label[label one]
-    text[label one text]:"Line number one"
-  label["2nd label"]
-    text[also possible to use : here now]:"Fun! Fun! Fun!"
-  label["quotes are needed for a closing bracket: ]"]
-    text[c_like_names_are_still_recommended_thought]:"Whatever"
-
-  label
+  hbox
     .expand:0
-    text:'Little STFL example program'
+    @style_normal:bg=yellow,fg=black
+    label
+      text:'Little STFL example program'
+    label[label one]
+      text[label one text]:"Line number one"
+    label["2nd label"]
+      text[also possible to use : here now]:"Fun! Fun! Fun!"
+    label["quotes are needed for a closing bracket: ]"]
+      text[c_like_names_are_still_recommended_thought]:"Whatever"
 
   table
     .expand:0
