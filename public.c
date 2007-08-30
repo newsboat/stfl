@@ -144,13 +144,8 @@ void stfl_set_focus(struct stfl_form *f, const wchar_t *name)
 
 const wchar_t *stfl_quote(const wchar_t *text)
 {
-	static wchar_t *last_ret = 0;
-	static int mutex_initialized = 0;
-	static pthread_mutex_t mtx;
-	if (!mutex_initialized) {
-		pthread_mutex_init(&mtx, NULL);
-		mutex_initialized = 1;
-	}
+	static __thread wchar_t *last_ret = 0;
+	static pthread_mutex_t mtx = PTHREAD_MUTEX_INITIALIZER;
 	pthread_mutex_lock(&mtx);
 	if (last_ret)
 		free(last_ret);
