@@ -27,6 +27,7 @@
 #include <wchar.h>
 #include <iconv.h>
 #include <errno.h>
+#include <pthread.h>
 
 struct stfl_ipool_entry {
 	void *data;
@@ -38,11 +39,15 @@ struct stfl_ipool {
 	iconv_t from_wc_desc;
 	char *code;
 	struct stfl_ipool_entry *list;
+	pthread_mutex_t mtx;
 };
 
 struct stfl_ipool *stfl_ipool_create(const char *code)
 {
 	struct stfl_ipool *pool = malloc(sizeof(struct stfl_ipool));
+	if (pool) {
+		pthread_mutex_init(&pool->mtx, NULL);
+	}
 
 	pool->to_wc_desc = (iconv_t)(-1);
 	pool->from_wc_desc = (iconv_t)(-1);
@@ -55,11 +60,14 @@ struct stfl_ipool *stfl_ipool_create(const char *code)
 
 void *stfl_ipool_add(struct stfl_ipool *pool, void *data)
 {
+	pthread_mutex_lock(&pool->mtx);
 	struct stfl_ipool_entry *entry = malloc(sizeof(struct stfl_ipool_entry));
 
 	entry->data = data;
 	entry->next = pool->list;
 	pool->list = entry;
+
+	pthread_mutex_unlock(&pool->mtx);
 
 	return data;
 }
@@ -70,14 +78,20 @@ const wchar_t *stfl_ipool_towc(struct stfl_ipool *pool, const char *buf)
 	if (!pool || !buf)
 		return 0;
 
-	if (!strcmp("WCHAR_T", pool->code))
+	pthread_mutex_lock(&pool->mtx);
+
+	if (!strcmp("WCHAR_T", pool->code)) {
+		pthread_mutex_unlock(&pool->mtx);
 		return (wchar_t*)buf;
+	}
 
 	if (pool->to_wc_desc == (iconv_t)(-1))
 		pool->to_wc_desc = iconv_open("WCHAR_T", pool->code);
 
-	if (pool->to_wc_desc == (iconv_t)(-1))
+	if (pool->to_wc_desc == (iconv_t)(-1)) {
+		pthread_mutex_unlock(&pool->mtx);
 		return 0;
+	}
 
 	char *inbuf = (char*)buf;
 	size_t inbytesleft = strlen(buf);
@@ -115,6 +129,7 @@ retry_without_growing:;
 
 	if (rc == -1) {
 		free(buffer);
+		pthread_mutex_unlock(&pool->mtx);
 		return 0;
 	}
 
@@ -122,6 +137,7 @@ retry_without_growing:;
 		buffer = realloc(buffer, buffer_size+sizeof(wchar_t));
 	*((wchar_t*)outbuf) = 0;
 
+	pthread_mutex_unlock(&pool->mtx);
 	return stfl_ipool_add(pool, buffer);
 }
 
@@ -130,14 +146,19 @@ const char *stfl_ipool_fromwc(struct stfl_ipool *pool, const wchar_t *buf)
 	if (!pool || !buf)
 		return 0;
 
-	if (!strcmp("WCHAR_T", pool->code))
+	pthread_mutex_lock(&pool->mtx);
+	if (!strcmp("WCHAR_T", pool->code)) {
+		pthread_mutex_unlock(&pool->mtx);
 		return (char*)buf;
+	}
 
 	if (pool->from_wc_desc == (iconv_t)(-1))
 		pool->from_wc_desc = iconv_open(pool->code, "WCHAR_T");
 
-	if (pool->from_wc_desc == (iconv_t)(-1))
+	if (pool->from_wc_desc == (iconv_t)(-1)) {
+		pthread_mutex_unlock(&pool->mtx);
 		return 0;
+	}
 
 	char *inbuf = (char*)buf;
 	size_t inbytesleft = wcslen(buf)*sizeof(wchar_t);
@@ -175,6 +196,7 @@ retry_without_growing:;
 
 	if (rc == -1) {
 		free(buffer);
+		pthread_mutex_unlock(&pool->mtx);
 		return 0;
 	}
 
@@ -182,6 +204,7 @@ retry_without_growing:;
 		buffer = realloc(buffer, buffer_size+1);
 	*outbuf = 0;
 
+	pthread_mutex_unlock(&pool->mtx);
 	return stfl_ipool_add(pool, buffer);
 }
 
@@ -190,6 +213,7 @@ void stfl_ipool_flush(struct stfl_ipool *pool)
 	if (!pool)
 		return;
 
+	pthread_mutex_lock(&pool->mtx);
 	struct stfl_ipool_entry *l;
 
 	while (pool->list) {
@@ -198,14 +222,20 @@ void stfl_ipool_flush(struct stfl_ipool *pool)
 		free(l->data);
 		free(l);
 	}
+	pthread_mutex_unlock(&pool->mtx);
 }
 
 void stfl_ipool_destroy(struct stfl_ipool *pool)
 {
+	pthread_mutex_t mtx;
+
 	if (!pool)
 		return;
 
 	stfl_ipool_flush(pool);
+
+	pthread_mutex_lock(&pool->mtx);
+
 	free(pool->code);
 
 	if (pool->to_wc_desc != (iconv_t)(-1))
@@ -214,6 +244,12 @@ void stfl_ipool_destroy(struct stfl_ipool *pool)
 	if (pool->from_wc_desc != (iconv_t)(-1))
 		iconv_close(pool->from_wc_desc);
 
+	mtx = pool->mtx;
+
 	free(pool);
+
+	pthread_mutex_unlock(&pool->mtx);
+
+	pthread_mutex_destroy(&mtx);
 }
 
