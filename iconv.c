@@ -227,8 +227,6 @@ void stfl_ipool_flush(struct stfl_ipool *pool)
 
 void stfl_ipool_destroy(struct stfl_ipool *pool)
 {
-	pthread_mutex_t mtx;
-
 	if (!pool)
 		return;
 
@@ -244,12 +242,9 @@ void stfl_ipool_destroy(struct stfl_ipool *pool)
 	if (pool->from_wc_desc != (iconv_t)(-1))
 		iconv_close(pool->from_wc_desc);
 
-	mtx = pool->mtx;
+	pthread_mutex_unlock(&pool->mtx);
+	pthread_mutex_destroy(&pool->mtx);
 
 	free(pool);
-
-	pthread_mutex_unlock(&pool->mtx);
-
-	pthread_mutex_destroy(&mtx);
 }
 
