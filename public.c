@@ -22,6 +22,7 @@
 
 #include "stfl_internals.h"
 
+#include <pthread.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
@@ -144,27 +145,61 @@ void stfl_set_focus(struct stfl_form *f, const wchar_t *name)
 
 const wchar_t *stfl_quote(const wchar_t *text)
 {
-	static __thread wchar_t *last_ret = 0;
 	static pthread_mutex_t mtx = PTHREAD_MUTEX_INITIALIZER;
+	static pthread_key_t retbuffer_key;
+	static int firstrun = 1;
+	static wchar_t *retbuffer = 0;
+
 	pthread_mutex_lock(&mtx);
-	if (last_ret)
-		free(last_ret);
-	last_ret = stfl_quote_backend(text ? text : L"");
+
+	if (firstrun) {
+		pthread_key_create(&retbuffer_key, free);
+		firstrun = 0;
+	}
+
+	retbuffer = pthread_getspecific(retbuffer_key);
+
+	if (retbuffer)
+		free(retbuffer);
+
+	retbuffer = stfl_quote_backend(text ? text : L"");
+
+	pthread_setspecific(retbuffer_key, retbuffer);
+
 	pthread_mutex_unlock(&mtx);
-	return checkret(last_ret);
+	return checkret(retbuffer);
 }
 
 const wchar_t *stfl_dump(struct stfl_form *f, const wchar_t *name, const wchar_t *prefix, int focus)
 {
-	static wchar_t *last_ret = 0;
+	static pthread_mutex_t mtx = PTHREAD_MUTEX_INITIALIZER;
+	static pthread_key_t retbuffer_key;
+	static int firstrun = 1;
+	static wchar_t *retbuffer = 0;
 	struct stfl_widget *w;
+
+	pthread_mutex_lock(&mtx);
 	pthread_mutex_lock(&f->mtx);
+
+	if (firstrun) {
+		pthread_key_create(&retbuffer_key, free);
+		firstrun = 0;
+	}
+
+	retbuffer = pthread_getspecific(retbuffer_key);
+
+	if (retbuffer)
+		free(retbuffer);
+
 	w = name && *name ? stfl_widget_by_name(f->root, name) : f->root;
-	if (last_ret)
-		free(last_ret);
-	last_ret = stfl_widget_dump(w, prefix ? prefix : L"", focus ? f->current_focus_id : 0);
+	retbuffer = stfl_widget_dump(w, prefix ? prefix : L"", focus ? f->current_focus_id : 0);
+
+	pthread_setspecific(retbuffer_key, retbuffer);
+
 	pthread_mutex_unlock(&f->mtx);
-	return checkret(last_ret);
+	pthread_mutex_unlock(&mtx);
+
+	return checkret(retbuffer);
 }
 
 static void stfl_modify_before(struct stfl_widget *w, struct stfl_widget *n)
