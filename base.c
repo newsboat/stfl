@@ -511,6 +511,14 @@ void stfl_form_run(struct stfl_form *f, int timeout)
 	getbegyx(stdscr, f->root->y, f->root->x);
 	getmaxyx(stdscr, f->root->h, f->root->w);
 
+	if (timeout == -3) {
+		WINDOW *dummywin = newwin(0, 0, 0, 0);
+		f->root->type->f_draw(f->root, f, dummywin);
+		delwin(dummywin);
+		pthread_mutex_unlock(&f->mtx);
+		return;
+	}
+
 	werase(stdscr);
 	f->root->type->f_draw(f->root, f, stdscr);
 	refresh();

@@ -672,6 +672,11 @@ When the timeout parameter is set to -2 the displayed is not updated and the
 next pending event is returned. If there are no pending events an undefined
 value is returned.
 
+When the timeout parameter is set to -3, rendering (and setting the :x, :y, :w
+and :h pseudo-variables) is done but the screen is not updated and no events
+are fetched. This is usefull for incrementing rendering processes where
+appropriate :x, :y, :w and/or :h values are needed for finishing the layout.
+
 stfl_reset()
 ~~~~~~~~~~~~
 
