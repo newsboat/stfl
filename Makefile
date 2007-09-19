@@ -46,7 +46,7 @@ clean:
 
 Makefile.deps: *.c widgets/*.c *.h
 	$(CC) -I. -MM *.c > Makefile.deps_new
-	$(CC) -I. -MM widgets/*.c | sed -r 's,^wt_[^ ]*\.o: ,widgets/&,' >> Makefile.deps_new
+	$(CC) -I. -MM widgets/*.c | sed 's,^wt_[^ ]*\.o: ,widgets/&,' >> Makefile.deps_new
 	mv -f Makefile.deps_new Makefile.deps
 
 install: all

@@ -23,7 +23,6 @@
 #include "stfl_internals.h"
 
 #include <string.h>
-#include <alloca.h>
 
 static void wt_label_prepare(struct stfl_widget *w, struct stfl_form *f)
 {
@@ -35,7 +34,6 @@ static void wt_label_prepare(struct stfl_widget *w, struct stfl_form *f)
 static void wt_label_draw(struct stfl_widget *w, struct stfl_form *f, WINDOW *win)
 {
 	const wchar_t * text;
-	wchar_t * fillup;
 	unsigned int i;
 
 
@@ -44,12 +42,13 @@ static void wt_label_draw(struct stfl_widget *w, struct stfl_form *f, WINDOW *wi
 	text = stfl_widget_getkv_str(w,L"text",L"");
 
 	if (wcswidth(text,wcslen(text)) < w->w) {
-		fillup = alloca(sizeof(wchar_t)*(w->w - wcswidth(text,wcslen(text)) + 1));
+		wchar_t *fillup = alloca(sizeof(wchar_t)*(w->w - wcswidth(text,wcslen(text)) + 1));
 		for (i=0;i < w->w - wcswidth(text,wcslen(text));++i) {
 			fillup[i] = L' ';
 		}
 		fillup[w->w - wcswidth(text,wcslen(text))] = L'\0';
 		mvwaddnwstr(win, w->y, w->x + wcswidth(text,wcslen(text)), fillup, wcswidth(fillup,wcslen(fillup)));
+		free(fillup);
 	}
 
 	mvwaddnwstr(win, w->y, w->x, text, w->w);

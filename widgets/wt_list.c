@@ -23,7 +23,6 @@
 #include "stfl_internals.h"
 
 #include <string.h>
-#include <alloca.h>
 
 static void fix_offset_pos(struct stfl_widget *w)
 {
@@ -78,7 +77,6 @@ static void wt_list_prepare(struct stfl_widget *w, struct stfl_form *f)
 static void wt_list_draw(struct stfl_widget *w, struct stfl_form *f, WINDOW *win)
 {
 	const wchar_t * text;
-	wchar_t * fillup;
 	fix_offset_pos(w);
 
 	int offset = stfl_widget_getkv_int(w, L"offset", 0);
@@ -114,12 +112,13 @@ static void wt_list_draw(struct stfl_widget *w, struct stfl_form *f, WINDOW *win
 		text = stfl_widget_getkv_str(c, L"text", L"");
 		
 		if (wcswidth(text,wcslen(text)) < w->w) {
-			fillup = alloca(sizeof(wchar_t)*(w->w - wcswidth(text,wcslen(text)) + 1));
+			wchar_t *fillup = alloca(sizeof(wchar_t)*(w->w - wcswidth(text,wcslen(text)) + 1));
 			for (j=0;j < w->w - wcswidth(text,wcslen(text));++j) {
 				fillup[j] = ' ';
 			}
 			fillup[w->w - wcswidth(text,wcslen(text))] = '\0';
 			mvwaddnwstr(win, w->y+i-offset, w->x + wcswidth(text,wcslen(text)), fillup, wcswidth(fillup,wcslen(fillup)));
+			free(fillup);
 		}
 
 		mvwaddnwstr(win, w->y+i-offset, w->x, text, w->w);

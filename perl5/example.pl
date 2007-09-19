@@ -73,7 +73,7 @@ sub newlist()
 		push @templist, $i if $files[$i] =~ /$searchterm/i;
 	}
 
-	$f->run(-1);
+	$f->run(-3);
 	my $w = $f->get("filelist:w") - 4;
 
 	my $code = "{list";
