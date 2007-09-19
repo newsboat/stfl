@@ -112,7 +112,7 @@ static void wt_list_draw(struct stfl_widget *w, struct stfl_form *f, WINDOW *win
 		text = stfl_widget_getkv_str(c, L"text", L"");
 		
 		if (wcswidth(text,wcslen(text)) < w->w) {
-			wchar_t *fillup = alloca(sizeof(wchar_t)*(w->w - wcswidth(text,wcslen(text)) + 1));
+			wchar_t *fillup = malloc(sizeof(wchar_t)*(w->w - wcswidth(text,wcslen(text)) + 1));
 			for (j=0;j < w->w - wcswidth(text,wcslen(text));++j) {
 				fillup[j] = ' ';
 			}

@@ -42,7 +42,7 @@ static void wt_label_draw(struct stfl_widget *w, struct stfl_form *f, WINDOW *wi
 	text = stfl_widget_getkv_str(w,L"text",L"");
 
 	if (wcswidth(text,wcslen(text)) < w->w) {
-		wchar_t *fillup = alloca(sizeof(wchar_t)*(w->w - wcswidth(text,wcslen(text)) + 1));
+		wchar_t *fillup = malloc(sizeof(wchar_t)*(w->w - wcswidth(text,wcslen(text)) + 1));
 		for (i=0;i < w->w - wcswidth(text,wcslen(text));++i) {
 			fillup[i] = L' ';
 		}
