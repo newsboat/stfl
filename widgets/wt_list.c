@@ -23,6 +23,7 @@
 #include "stfl_internals.h"
 
 #include <string.h>
+#include <stdlib.h>
 
 static void fix_offset_pos(struct stfl_widget *w)
 {

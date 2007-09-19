@@ -23,6 +23,7 @@
 #include "stfl_internals.h"
 
 #include <string.h>
+#include <stdlib.h>
 
 static void wt_label_prepare(struct stfl_widget *w, struct stfl_form *f)
 {
