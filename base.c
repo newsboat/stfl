@@ -442,7 +442,8 @@ void stfl_form_event(struct stfl_form *f, wchar_t *event)
 	*ep = e;
 }
 
-static struct stfl_widget* stfl_gather_focus_widget(struct stfl_form* f) {
+static struct stfl_widget* stfl_gather_focus_widget(struct stfl_form* f)
+{
 	struct stfl_widget *fw = stfl_widget_by_id(f->root, f->current_focus_id);
 
 	if (fw == 0)
@@ -559,6 +560,7 @@ void stfl_form_run(struct stfl_form *f, int timeout)
 	if (rc != KEY_CODE_YES && wch == L'\t')
 	{
 		struct stfl_widget *old_fw = fw = stfl_widget_by_id(f->root, f->current_focus_id);
+
 		if (!fw)
 			goto generate_event;
 
@@ -584,7 +586,7 @@ void stfl_form_run(struct stfl_form *f, int timeout)
 			if (old_fw && old_fw->type->f_leave)
 				old_fw->type->f_leave(old_fw, f);
 
-			if (fw->type->f_enter)
+			if (fw && fw->type->f_enter)
 				fw->type->f_enter(fw, f);
 
 			f->current_focus_id = fw ? fw->id : 0;
