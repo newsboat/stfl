@@ -447,20 +447,7 @@ static struct stfl_widget* stfl_gather_focus_widget(struct stfl_form* f) {
 
 	if (fw == 0)
 	{
-		fw = f->root;
-		while (fw)
-		{
-			if (fw->allow_focus)
-				break;
-
-			if (fw->first_child)
-				fw = fw->first_child;
-			else
-			if (fw->next_sibling)
-				fw = fw->next_sibling;
-			else
-				fw = fw->parent ? fw->parent->next_sibling : 0;
-		}
+		fw = stfl_find_first_focusable(f->root);
 
 		if (fw && fw->type->f_enter)
 			fw->type->f_enter(fw, f);
@@ -582,7 +569,11 @@ void stfl_form_run(struct stfl_form *f, int timeout)
 			if (fw->next_sibling)
 				fw = fw->next_sibling;
 			else
+			{
+				while (fw->parent && !fw->parent->next_sibling)
+					fw = fw->parent;
 				fw = fw->parent ? fw->parent->next_sibling : 0;
+			}
 
 			if (!fw && old_fw)
 				fw = f->root;
