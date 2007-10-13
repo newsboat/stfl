@@ -86,6 +86,7 @@ static void wt_input_prepare(struct stfl_widget *w, struct stfl_form *f)
 static void wt_input_draw(struct stfl_widget *w, struct stfl_form *f, WINDOW *win)
 {
 	int pos = stfl_widget_getkv_int(w, L"pos", 0);
+	int blind = stfl_widget_getkv_int(w, L"blind", 0);
 	int offset = stfl_widget_getkv_int(w, L"offset", 0);
 	const wchar_t *text = stfl_widget_getkv_str(w, L"text", L"");
 	int pos_width = 0, offset_width = 0, i;
@@ -94,7 +95,8 @@ static void wt_input_draw(struct stfl_widget *w, struct stfl_form *f, WINDOW *wi
 
 	for (i=0; i<w->w; i++)
 		mvwaddwstr(win, w->y, w->x+i, L" ");
-	mvwaddnwstr(win, w->y, w->x, text+offset, wcswidth(text+offset,w->w));
+	if (!blind)
+		mvwaddnwstr(win, w->y, w->x, text+offset, wcswidth(text+offset,w->w));
 
 	for (i=0;i<pos;++i) {
 		pos_width += wcwidth(text[i]);
