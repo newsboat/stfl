@@ -96,6 +96,7 @@ const wchar_t *stfl_get(struct stfl_form *f, const wchar_t *name)
 		}
 		if (!wcscmp(pseudovar_sep+1, L"h")) {
 			swprintf(ret_buffer, 16, L"%d", w->h);
+			pthread_mutex_unlock(&f->mtx);
 			return checkret(ret_buffer);
 		}
 		if (!wcscmp(pseudovar_sep+1, L"minw")) {
