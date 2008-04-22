@@ -519,6 +519,14 @@ listitem child widgets. Implements the following variables:
 		The number of the first line displayed
 		(becomes >0 when scrolling).
 
+	richtext
+		Set to '1' to enable richtext support
+
+	style_FOOBAR_normal
+		The style for text after a <FOOBAR>. the </> token can
+		be used to restore the style_normal settings. this variables
+		are only used if the 'richtext' variable is set.
+
 
 Common Variables
 ----------------

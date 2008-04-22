@@ -99,3 +99,18 @@ vbox
       label .tie:r
         text:"Short (right)"
 
+  textview[textview]
+    .expand:0
+    @style_blue_normal:fg=blue
+    @style_red_normal:fg=red
+    @style_bold_normal:attr=bold,attr=underline
+    richtext:1
+      listitem text:"This is normal text"
+      listitem text:"Normal <blue>blue Text <red>red Text </>normal"
+      listitem text:"Multi line: <blue>first line"
+      listitem text:"this is the 2nd line, still blue"
+      listitem text:"3rd line</>, and normal again!"
+      listitem text:"a smaller-than sign: <>"
+      listitem text:"a greater-than sign: >"
+      listitem text:"<bold>bold text</> normal text"
+

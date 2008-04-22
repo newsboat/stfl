@@ -24,6 +24,7 @@
 #include "stfl_internals.h"
 
 #include <string.h>
+#include <stdlib.h>
 
 #if 0
 static void fix_offset_pos(struct stfl_widget *w)
@@ -77,11 +78,73 @@ static void wt_textview_prepare(struct stfl_widget *w, struct stfl_form *f)
 	}
 }
 
+unsigned int compute_len_from_width(const wchar_t *p, unsigned int width)
+{
+	unsigned int len = 0;
+	unsigned int end_loop = 0;
+	while (p && !end_loop) {
+		if (wcwidth(*p) > width) {
+			end_loop = 1;
+		} else {
+			width -= wcwidth(*p);
+			p++;
+			len++;
+		}
+	}
+	return len;
+}
+
+static void print_richtext(struct stfl_widget *w, WINDOW *win, unsigned int y, unsigned int x, const wchar_t * text, unsigned int width, const wchar_t * style_normal)
+{
+	const wchar_t *p = text;
+
+	unsigned int end_col = x + width;
+
+	while (*p) {
+		unsigned int len = compute_len_from_width(p, end_col - x);
+		const wchar_t *p1 = wcschr(p, L'<');
+		if (NULL == p1) {
+			mvwaddnwstr(win, y, x, p, len);
+			break;
+		} else {
+			const wchar_t *p2 = wcschr(p1 + 1, L'>');
+
+			if (len > (p1 - p))
+				len = p1 - p;
+			mvwaddnwstr(win, y, x, p, len);
+			x += len;
+
+			if (p2) {
+				wchar_t stylename[p2 - p1];
+				wmemcpy(stylename, p1 + 1, p2 - p1 - 1);
+				stylename[p2 - p1 - 1] = L'\0';
+				if (wcscmp(stylename,L"")==0) {
+					mvwaddnwstr(win, y, x, L"<", 1);
+					++x;
+				} else if (wcscmp(stylename, L"/")==0) {
+					stfl_style(win, style_normal);
+				} else {
+					wchar_t lookup_stylename[128];
+					const wchar_t * style;
+					/* TODO: add support for style_%ls_focus */
+					swprintf(lookup_stylename, sizeof(lookup_stylename)/sizeof(*lookup_stylename), L"style_%ls_normal", stylename);
+					style = stfl_widget_getkv_str(w, lookup_stylename, L"");
+					stfl_style(win, style);
+				}
+				p = p2 + 1;
+			} else {
+				break;
+			}
+		}
+	}
+}
+
 static void wt_textview_draw(struct stfl_widget *w, struct stfl_form *f, WINDOW *win)
 {
 	//fix_offset_pos(w);
 
 	int offset = stfl_widget_getkv_int(w, L"offset", 0);
+	int is_richtext = stfl_widget_getkv_int(w, L"richtext", 0);
 
 	const wchar_t *style_normal = stfl_widget_getkv_str(w, L"style_normal", L"");
 	const wchar_t *style_end = stfl_widget_getkv_str(w, L"style_end", L"");
@@ -92,11 +155,19 @@ static void wt_textview_draw(struct stfl_widget *w, struct stfl_form *f, WINDOW 
 	stfl_style(win, style_normal);
 	for (i=0, c=w->first_child; c && i < offset+w->h; i++, c=c->next_sibling)
 	{
-		if (i < offset)
-			continue;
+		const wchar_t *text = stfl_widget_getkv_str(c, L"text", L"");
 
-		mvwaddnwstr(win, w->y+i-offset, w->x,
-				stfl_widget_getkv_str(c, L"text", L""), w->w);
+		if (i < offset) {
+			if (is_richtext)
+				print_richtext(w, win, w->y, w->x, text, 0, style_normal);
+			continue;
+		}
+
+		if (is_richtext) {
+			print_richtext(w, win, w->y+i-offset, w->x, text, w->w, style_normal);
+		} else {
+			mvwaddnwstr(win, w->y+i-offset, w->x, text, w->w);
+		}
 	}
 
 	stfl_style(win, style_end);
