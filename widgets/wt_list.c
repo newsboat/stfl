@@ -83,46 +83,65 @@ static void wt_list_draw(struct stfl_widget *w, struct stfl_form *f, WINDOW *win
 	int offset = stfl_widget_getkv_int(w, L"offset", 0);
 	int pos = stfl_widget_getkv_int(w, L"pos", 0);
 
+	int is_richtext = stfl_widget_getkv_int(w, L"richtext", 0);
+
 	const wchar_t *style_focus = stfl_widget_getkv_str(w, L"style_focus", L"");
 	const wchar_t *style_selected = stfl_widget_getkv_str(w, L"style_selected", L"");
 	const wchar_t *style_normal = stfl_widget_getkv_str(w, L"style_normal", L"");
 
+	const wchar_t * cur_style = NULL;
+
 	struct stfl_widget *c;
 	int i, j;
+
+	unsigned int width = 0;
 
 	if (f->current_focus_id == w->id)
 		f->cursor_x = f->cursor_y = -1;
 
 	for (i=0, c=w->first_child; c && i < offset+w->h; i++, c=c->next_sibling)
 	{
+		int has_focus = 0;
 		if (i < offset)
 			continue;
 
 		if (i == pos) {
 			if (f->current_focus_id == w->id) {
 				stfl_style(win, style_focus);
+				cur_style = style_focus;
+				has_focus = 1;
 				f->cursor_y = w->y+i-offset;
 				f->cursor_x = w->x;
-			} else
+			} else {
 				stfl_style(win, style_selected);
+				cur_style = style_selected;
+			}
 
 			stfl_widget_setkv_str(w, L"pos_name", c->name ? c->name : L"");	
-		} else
+		} else {
 			stfl_style(win, style_normal);
+			cur_style = style_normal;
+		}
 
 		text = stfl_widget_getkv_str(c, L"text", L"");
-		
-		if (wcswidth(text,wcslen(text)) < w->w) {
-			wchar_t *fillup = malloc(sizeof(wchar_t)*(w->w - wcswidth(text,wcslen(text)) + 1));
-			for (j=0;j < w->w - wcswidth(text,wcslen(text));++j) {
+
+		if (1) {
+			wchar_t *fillup = malloc(sizeof(wchar_t)*(w->w + 1));
+			for (j=0;j < w->w;++j) {
 				fillup[j] = ' ';
 			}
-			fillup[w->w - wcswidth(text,wcslen(text))] = '\0';
-			mvwaddnwstr(win, w->y+i-offset, w->x + wcswidth(text,wcslen(text)), fillup, wcswidth(fillup,wcslen(fillup)));
+			fillup[w->w] = '\0';
+			mvwaddnwstr(win, w->y+i-offset, w->x, fillup, wcswidth(fillup,wcslen(fillup)));
 			free(fillup);
 		}
 
-		mvwaddnwstr(win, w->y+i-offset, w->x, text, w->w);
+		if (is_richtext)
+			width = stfl_print_richtext(w, win, w->y+i-offset, w->x, text, w->w, cur_style, has_focus);
+		else {
+			mvwaddnwstr(win, w->y+i-offset, w->x, text, w->w);
+			width = wcslen(text);
+		}
+
 	}
 }
 

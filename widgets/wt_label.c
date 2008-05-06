@@ -37,22 +37,28 @@ static void wt_label_draw(struct stfl_widget *w, struct stfl_form *f, WINDOW *wi
 	const wchar_t * text;
 	unsigned int i;
 
+	int is_richtext = stfl_widget_getkv_int(w, L"richtext", 0);
+
+	const wchar_t * style = stfl_widget_getkv_str(w, L"style_normal", L"");
 
 	stfl_widget_style(w, f, win);
 
 	text = stfl_widget_getkv_str(w,L"text",L"");
 
-	if (wcswidth(text,wcslen(text)) < w->w) {
-		wchar_t *fillup = malloc(sizeof(wchar_t)*(w->w - wcswidth(text,wcslen(text)) + 1));
-		for (i=0;i < w->w - wcswidth(text,wcslen(text));++i) {
+	if (1) {
+		wchar_t *fillup = malloc(sizeof(wchar_t)*(w->w + 1));
+		for (i=0;i < w->w;++i) {
 			fillup[i] = L' ';
 		}
-		fillup[w->w - wcswidth(text,wcslen(text))] = L'\0';
-		mvwaddnwstr(win, w->y, w->x + wcswidth(text,wcslen(text)), fillup, wcswidth(fillup,wcslen(fillup)));
+		fillup[w->w] = L'\0';
+		mvwaddnwstr(win, w->y, w->x, fillup, wcswidth(fillup,wcslen(fillup)));
 		free(fillup);
 	}
 
-	mvwaddnwstr(win, w->y, w->x, text, w->w);
+	if (is_richtext)
+		stfl_print_richtext(w, win, w->y, w->x, text, w->w, style, 0);
+	else
+		mvwaddnwstr(win, w->y, w->x, text, w->w);
 }
 
 struct stfl_widget_type stfl_widget_type_label = {

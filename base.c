@@ -643,3 +643,71 @@ void stfl_check_setfocus(struct stfl_form *f, struct stfl_widget *w)
 	}
 }
 
+static unsigned int compute_len_from_width(const wchar_t *p, unsigned int width)
+{
+	unsigned int len = 0;
+	unsigned int end_loop = 0;
+	while (p && !end_loop) {
+		if (wcwidth(*p) > width) {
+			end_loop = 1;
+		} else {
+			width -= wcwidth(*p);
+			p++;
+			len++;
+		}
+	}
+	return len;
+}
+
+unsigned int stfl_print_richtext(struct stfl_widget *w, WINDOW *win, unsigned int y, unsigned int x, const wchar_t * text, unsigned int width, const wchar_t * style_normal, int has_focus)
+{
+	const wchar_t *p = text;
+	unsigned int retval = 0;
+
+	unsigned int end_col = x + width;
+
+	while (*p) {
+		unsigned int len = compute_len_from_width(p, end_col - x);
+		const wchar_t *p1 = wcschr(p, L'<');
+		if (NULL == p1) {
+			mvwaddnwstr(win, y, x, p, len);
+			retval += len;
+			break;
+		} else {
+			const wchar_t *p2 = wcschr(p1 + 1, L'>');
+
+			if (len > (p1 - p))
+				len = p1 - p;
+			mvwaddnwstr(win, y, x, p, len);
+			retval += len;
+			x += len;
+
+			if (p2) {
+				wchar_t stylename[p2 - p1];
+				wmemcpy(stylename, p1 + 1, p2 - p1 - 1);
+				stylename[p2 - p1 - 1] = L'\0';
+				if (wcscmp(stylename,L"")==0) {
+					mvwaddnwstr(win, y, x, L"<", 1);
+					retval += 1;
+					++x;
+				} else if (wcscmp(stylename, L"/")==0) {
+					stfl_style(win, style_normal);
+				} else {
+					wchar_t lookup_stylename[128];
+					const wchar_t * style;
+					if (has_focus)
+						swprintf(lookup_stylename, sizeof(lookup_stylename)/sizeof(*lookup_stylename), L"style_%ls_focus", stylename);
+					else
+						swprintf(lookup_stylename, sizeof(lookup_stylename)/sizeof(*lookup_stylename), L"style_%ls_normal", stylename);
+					style = stfl_widget_getkv_str(w, lookup_stylename, L"");
+					stfl_style(win, style);
+				}
+				p = p2 + 1;
+			} else {
+				break;
+			}
+		}
+	}
+	return retval;
+}
+
