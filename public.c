@@ -302,7 +302,10 @@ void stfl_modify(struct stfl_form *f, const wchar_t *name, const wchar_t *mode, 
 	mode = mode ? mode : L"";
 
 	if (!wcscmp(mode, L"replace")) {
-		stfl_modify_after(w, n);
+		if (w == f->root)
+			f->root = n;
+		else
+			stfl_modify_after(w, n);
 		stfl_widget_free(w);
 		goto finish;
 	}
