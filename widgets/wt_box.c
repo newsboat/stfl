@@ -84,7 +84,7 @@ static void wt_box_draw(struct stfl_widget *w, struct stfl_form *f, WINDOW *win)
 	struct stfl_widget *c = w->first_child;
 	while (c)
 	{
-		if (!stfl_widget_getkv_int(c, L".display", 1))
+		if (stfl_widget_getkv_int(c, L".display", 1))
 		{
 			int size_w = stfl_widget_getkv_int(c, L".width", 0);
 			if (size_w < c->min_w) size_w = c->min_w;
@@ -133,7 +133,7 @@ static void wt_box_draw(struct stfl_widget *w, struct stfl_form *f, WINDOW *win)
 	c = w->first_child;
 	for (i=0; c; i++)
 	{
-		if (!stfl_widget_getkv_int(c, L".display", 1))
+		if (stfl_widget_getkv_int(c, L".display", 1))
 		{
 			int size = stfl_widget_getkv_int(c,
 					d->type == 'H' ? L".width" : L".height", 0);
