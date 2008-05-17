@@ -348,6 +348,10 @@ repectively. The following variables are supported by both widgets:
 		number of characters. Usually one wants to also declare
 		.expand:0 when declaring this variable.
 
+	.display
+		Simply ignore this child widget if this variable is set to '0'.
+		The default value is '1'.
+
 label
 ~~~~~
 

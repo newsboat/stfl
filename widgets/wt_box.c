@@ -57,15 +57,17 @@ static void wt_box_prepare(struct stfl_widget *w, struct stfl_form *f)
 
 	struct stfl_widget *c = w->first_child;
 	while (c) {
-		c->type->f_prepare(c, f);
-		if (d->type == 'H') {
-			if (w->min_h < c->min_h)
-				w->min_h = c->min_h;
-			w->min_w += c->min_w;
-		} else {
-			if (w->min_w < c->min_w)
-				w->min_w = c->min_w;
-			w->min_h += c->min_h;
+		if (stfl_widget_getkv_int(c, L".display", 1)) {
+			c->type->f_prepare(c, f);
+			if (d->type == 'H') {
+				if (w->min_h < c->min_h)
+					w->min_h = c->min_h;
+				w->min_w += c->min_w;
+			} else {
+				if (w->min_w < c->min_w)
+					w->min_w = c->min_w;
+				w->min_h += c->min_h;
+			}
 		}
 		c = c->next_sibling;
 	}
@@ -82,26 +84,28 @@ static void wt_box_draw(struct stfl_widget *w, struct stfl_form *f, WINDOW *win)
 	struct stfl_widget *c = w->first_child;
 	while (c)
 	{
-		int size_w = stfl_widget_getkv_int(c, L".width", 0);
-		if (size_w < c->min_w) size_w = c->min_w;
+		if (!stfl_widget_getkv_int(c, L".display", 1))
+		{
+			int size_w = stfl_widget_getkv_int(c, L".width", 0);
+			if (size_w < c->min_w) size_w = c->min_w;
 
-		int size_h = stfl_widget_getkv_int(c, L".height", 0);
-		if (size_h < c->min_h) size_h = c->min_h;
+			int size_h = stfl_widget_getkv_int(c, L".height", 0);
+			if (size_h < c->min_h) size_h = c->min_h;
 
-		if (wcschr(stfl_widget_getkv_str(c, L".expand", L"vh"),
-				d->type == 'H' ? 'h' : 'v'))
-			num_dyn_children++;
+			if (wcschr(stfl_widget_getkv_str(c, L".expand", L"vh"),
+					d->type == 'H' ? 'h' : 'v'))
+				num_dyn_children++;
 
-		if (d->type == 'H') {
-			min_w += size_w;
-			if (min_h < size_h)
-				min_h = size_h;
-		} else {
-			min_h += size_h;
-			if (min_w < size_w)
-				min_w = size_w;
+			if (d->type == 'H') {
+				min_w += size_w;
+				if (min_h < size_h)
+					min_h = size_h;
+			} else {
+				min_h += size_h;
+				if (min_w < size_w)
+					min_w = size_w;
+			}
 		}
-
 		c = c->next_sibling;
 	}
 
@@ -129,44 +133,47 @@ static void wt_box_draw(struct stfl_widget *w, struct stfl_form *f, WINDOW *win)
 	c = w->first_child;
 	for (i=0; c; i++)
 	{
-		int size = stfl_widget_getkv_int(c,
-				d->type == 'H' ? L".width" : L".height", 0);
+		if (!stfl_widget_getkv_int(c, L".display", 1))
+		{
+			int size = stfl_widget_getkv_int(c,
+					d->type == 'H' ? L".width" : L".height", 0);
 
-		if (size < (d->type == 'H' ? c->min_w : c->min_h))
-			size = d->type == 'H' ? c->min_w : c->min_h;
+			if (size < (d->type == 'H' ? c->min_w : c->min_h))
+				size = d->type == 'H' ? c->min_w : c->min_h;
 
-		if (wcschr(stfl_widget_getkv_str(c, L".expand", L"vh"),
-				d->type == 'H' ? 'h' : 'v')) {
-			int extra = sizes_extra / num_dyn_children--;
-			sizes_extra -= extra;
-			size += extra;
+			if (wcschr(stfl_widget_getkv_str(c, L".expand", L"vh"),
+					d->type == 'H' ? 'h' : 'v')) {
+				int extra = sizes_extra / num_dyn_children--;
+				sizes_extra -= extra;
+				size += extra;
+			}
+			
+			if (d->type == 'H') {
+				c->y = box_y;
+				c->x = cursor;
+				c->h = box_h;
+				c->w = size;
+				cursor += c->w;
+			} else {
+				c->x = box_x;
+				c->y = cursor;
+				c->w = box_w;
+				c->h = size;
+				cursor += c->h;
+			}
+
+			tie = stfl_widget_getkv_str(c, L".tie", L"lrtb");
+
+			if (!wcschr(tie, L'l') && !wcschr(tie, L'r')) c->x += (c->w - c->min_w)/2;
+			if (!wcschr(tie, L'l') &&  wcschr(tie, L'r')) c->x += c->w - c->min_w;
+			if (!wcschr(tie, L'l') || !wcschr(tie, L'r')) c->w = c->min_w;
+
+			if (!wcschr(tie, L't') && !wcschr(tie, L'b')) c->y += (c->h - c->min_h)/2;
+			if (!wcschr(tie, L't') &&  wcschr(tie, L'b')) c->y += c->h - c->min_h;
+			if (!wcschr(tie, L't') || !wcschr(tie, L'b')) c->h = c->min_h;
+
+			c->type->f_draw(c, f, win);
 		}
-		
-		if (d->type == 'H') {
-			c->y = box_y;
-			c->x = cursor;
-			c->h = box_h;
-			c->w = size;
-			cursor += c->w;
-		} else {
-			c->x = box_x;
-			c->y = cursor;
-			c->w = box_w;
-			c->h = size;
-			cursor += c->h;
-		}
-
-		tie = stfl_widget_getkv_str(c, L".tie", L"lrtb");
-
-		if (!wcschr(tie, L'l') && !wcschr(tie, L'r')) c->x += (c->w - c->min_w)/2;
-		if (!wcschr(tie, L'l') &&  wcschr(tie, L'r')) c->x += c->w - c->min_w;
-		if (!wcschr(tie, L'l') || !wcschr(tie, L'r')) c->w = c->min_w;
-
-		if (!wcschr(tie, L't') && !wcschr(tie, L'b')) c->y += (c->h - c->min_h)/2;
-		if (!wcschr(tie, L't') &&  wcschr(tie, L'b')) c->y += c->h - c->min_h;
-		if (!wcschr(tie, L't') || !wcschr(tie, L'b')) c->h = c->min_h;
-
-		c->type->f_draw(c, f, win);
 		c = c->next_sibling;
 	}
 }
