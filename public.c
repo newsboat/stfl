@@ -292,14 +292,27 @@ static void stfl_modify_append(struct stfl_widget *w, struct stfl_widget *n)
 
 void stfl_modify(struct stfl_form *f, const wchar_t *name, const wchar_t *mode, const wchar_t *text)
 {
-	struct stfl_widget *n = stfl_parser(text ? text : L"");
 	struct stfl_widget *w;
+	struct stfl_widget *n;
 
 	pthread_mutex_lock(&f->mtx);
 	
 	w = stfl_widget_by_name(f->root, name ? name : L"");
 
+	if (!w)
+		goto finish;
+
 	mode = mode ? mode : L"";
+
+	if (!wcscmp(mode, L"delete") && w != f->root) {
+		stfl_widget_free(w);
+		goto finish;
+	}
+
+	n = stfl_parser(text ? text : L"");
+
+	if (!n)
+		goto finish;
 
 	if (!wcscmp(mode, L"replace")) {
 		if (w == f->root)

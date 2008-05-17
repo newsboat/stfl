@@ -739,6 +739,9 @@ Import the STFL code specified in the 4th parameter to an existing form. The
 the modification. The 3rd parameter is a string specifying how the new STFL
 code should be added to the widget tree:
 
+	delete
+		Delete the widget. The 4th parameter is ignored in this mode.
+
 	replace
 		Replace the widget in the tree with the new tree.
 
@@ -774,9 +777,8 @@ code should be added to the widget tree:
 		Add the child list of the root element of the new tree after
 		the widget.
 
-The replace mode simply deletes the widget and the replace_inner mode deletes
-all existing childs of the widget when an empty string is passed as 4th
-parameter.
+The widget type of the root element of the tree passed in the 4th parameter
+doesn't matter in the *_inner modes.
 
 stfl_lookup(form, path, newname)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
