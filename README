@@ -435,7 +435,7 @@ this widget:
 	.height, .width
 		Hardcode the height or .width of this table cell to the
 		specified number of characters. Usually one wants to also
-		declare .noexpand:1 when declaring one of this variables.
+		declare .expand:0 when declaring one of this variables.
 
 	.colspan, .rowspan
 		The number of columns or rows for this cell. Default is '1'.
