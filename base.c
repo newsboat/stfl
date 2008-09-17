@@ -647,7 +647,7 @@ static unsigned int compute_len_from_width(const wchar_t *p, unsigned int width)
 {
 	unsigned int len = 0;
 	unsigned int end_loop = 0;
-	while (p && !end_loop) {
+	while (p && *p && !end_loop) {
 		if (wcwidth(*p) > width) {
 			end_loop = 1;
 		} else {
