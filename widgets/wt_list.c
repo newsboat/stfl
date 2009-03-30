@@ -182,6 +182,18 @@ static int wt_list_process(struct stfl_widget *w, struct stfl_widget *fw, struct
 		return 1;
 	}
 
+	if (stfl_matchbind(w, ch, isfunckey, L"home", L"HOME")) {
+		stfl_widget_setkv_int(w, L"pos", 0);
+		fix_offset_pos(w);
+		return 1;
+	}
+
+	if (stfl_matchbind(w, ch, isfunckey, L"end", L"END")) {
+		stfl_widget_setkv_int(w, L"pos", maxpos);
+		fix_offset_pos(w);
+		return 1;
+	}
+
 	return 0;
 }
 

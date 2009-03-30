@@ -24,6 +24,8 @@ export CC = gcc -pthread
 export CFLAGS += -I. -Wall -Os -ggdb -D_GNU_SOURCE -fPIC
 export LDLIBS += -lncursesw
 
+VERSION := 0.19
+
 all: libstfl.a example
 
 example: libstfl.a example.o
@@ -43,17 +45,22 @@ clean:
 	rm -f python/stfl_wrap.c python/stfl_wrap.o
 	rm -f ruby/Makefile ruby/stfl_wrap.c ruby/stfl_wrap.o
 	rm -f ruby/stfl.so ruby/build_ok Makefile.deps_new
+	rm -f stfl.pc
 
 Makefile.deps: *.c widgets/*.c *.h
 	$(CC) -I. -MM *.c > Makefile.deps_new
 	$(CC) -I. -MM widgets/*.c | sed 's,^wt_[^ ]*\.o: ,widgets/&,' >> Makefile.deps_new
 	mv -f Makefile.deps_new Makefile.deps
 
-install: all
-	mkdir -p $(DESTDIR)$(prefix)/lib
+install: all stfl.pc
+	mkdir -p $(DESTDIR)$(prefix)/lib/pkgconfig
 	mkdir -p $(DESTDIR)$(prefix)/include
 	install -m 644 libstfl.a $(DESTDIR)$(prefix)/lib/
 	install -m 644 stfl.h $(DESTDIR)$(prefix)/include/
+	install -m 644 stfl.pc $(DESTDIR)$(prefix)/lib/pkgconfig/
+
+stfl.pc: stfl.pc.in
+	sed 's,@VERSION@,$(VERSION),g' < $< | sed 's,@PREFIX@,$(prefix),g' > $@
 
 ifeq ($(FOUND_SPL),1)
 include spl/Makefile.snippet

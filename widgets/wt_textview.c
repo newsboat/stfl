@@ -164,6 +164,16 @@ static int wt_textview_process(struct stfl_widget *w, struct stfl_widget *fw, st
 		return 1;
 	}
 
+	if (stfl_matchbind(w, ch, isfunckey, "home", L"HOME")) {
+		stfl_widget_setkv_int(w, L"offset", 0);
+		return 1;
+	}
+
+	if (stfl_matchbind(w, ch, isfunckey, "end", L"END")) {
+		stfl_widget_setkv_int(w, L"offset", (maxoffset - w->h + 2) < 0 ? 0 : maxoffset - w->h + 2);
+		return 1;
+	}
+
 	return 0;
 }
 

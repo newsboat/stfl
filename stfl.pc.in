@@ -1,0 +1,13 @@
+# Package Information for pkg-config
+
+prefix=@PREFIX@
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib
+includedir=${prefix}/include
+
+Name: STFL
+Description: Structured Terminal Forms Language/Library
+Version: @VERSION@
+Libs: -L${libdir} -lstfl
+Libs.private: -lncursesw
+Cflags: -I${includedir}
