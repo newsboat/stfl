@@ -43,9 +43,23 @@ static void newtxt(struct txtnode **o, const wchar_t *fmt, ...)
 
 	va_list ap;
 	va_start(ap, fmt);
-	wchar_t buf[4096];
-	vswprintf(buf,4096, fmt, ap);
-	n->value = compat_wcsdup(buf);
+	wchar_t *buf = malloc(4096 * sizeof(wchar_t));
+	int buf_len = 4096;
+	while (1) {
+		int rc = vswprintf(buf, buf_len, fmt, ap);
+		if (rc < 0) {
+			free(buf);
+			buf = NULL;
+			break;
+		}
+		if (rc < buf_len) {
+			buf = realloc(buf, rc * sizeof(wchar_t));
+			break;
+		}
+		buf_len = buf_len * 2;
+		buf = realloc(buf, buf_len * sizeof(wchar_t));
+	}
+	n->value = buf;
 	if (n->value)
 		n->len = wcslen(n->value);
 	else
