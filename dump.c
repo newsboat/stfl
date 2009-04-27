@@ -52,8 +52,8 @@ static void newtxt(struct txtnode **o, const wchar_t *fmt, ...)
 			buf = NULL;
 			break;
 		}
-		if (rc < buf_len) {
-			buf = realloc(buf, rc * sizeof(wchar_t));
+		if ((rc + 1) < buf_len) {
+			buf = realloc(buf, (rc + 1) * sizeof(wchar_t));
 			break;
 		}
 		buf_len = buf_len * 2;
