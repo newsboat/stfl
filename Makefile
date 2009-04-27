@@ -24,7 +24,7 @@ export CC = gcc -pthread
 export CFLAGS += -I. -Wall -Os -ggdb -D_GNU_SOURCE -fPIC
 export LDLIBS += -lncursesw
 
-VERSION := 0.19
+VERSION := 0.20
 
 all: libstfl.a example
 
