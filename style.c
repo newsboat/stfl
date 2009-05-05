@@ -44,8 +44,7 @@ static wchar_t *wcssep(wchar_t **stringp, const wchar_t *delim) {
 }
 
 
-static int stfl_colorpair_begin = -1;
-static int stfl_colorpair_counter = -1;
+static int stfl_colorpair_counter = 0;
 
 void stfl_style(WINDOW *win, const wchar_t *style)
 {
@@ -102,6 +101,10 @@ void stfl_style(WINDOW *win, const wchar_t *style)
 			else
 			if (!wcscmp(value, L"white"))
 				color = COLOR_WHITE;
+			else
+			if (!wcsncmp(value, L"color", 5)) {
+				color = wcstoul(value + 5, NULL, 0);
+			}
 			else {
 				fprintf(stderr, "STFL Style Error: Unknown %ls color: '%ls'\n", key, value);
 				abort();
@@ -152,13 +155,7 @@ void stfl_style(WINDOW *win, const wchar_t *style)
 	int i;
 	short f, b;
 
-	if (stfl_colorpair_begin < 0)
-		stfl_colorpair_begin = COLOR_PAIRS-1;
-
-	if (stfl_colorpair_counter < 0)
-		stfl_colorpair_counter = stfl_colorpair_begin;
-
-	for (i=stfl_colorpair_begin; i>stfl_colorpair_counter; i--) {
+	for (i=0; i<stfl_colorpair_counter && i<COLOR_PAIRS; i++) {
 		pair_content(i, &f, &b);
 		if ((f == fg_color || (f == 255 && fg_color == -1)) &&
 		    (b == bg_color || (b == 255 && bg_color == -1)))
@@ -166,14 +163,12 @@ void stfl_style(WINDOW *win, const wchar_t *style)
 	}
 
 	if (i == stfl_colorpair_counter) {
-		if (stfl_colorpair_counter > 16) {
-			init_pair(i, fg_color, bg_color);
-			stfl_colorpair_counter--;
-		} else
-			i = 0;
+		init_pair(i, fg_color, bg_color);
+		stfl_colorpair_counter++;
 	}
 
-	wattrset(win, attr | COLOR_PAIR(i));
+	wattrset(win, attr);
+	wcolor_set(win, i, NULL);
 }
 
 void stfl_widget_style(struct stfl_widget *w, struct stfl_form *f, WINDOW *win)
