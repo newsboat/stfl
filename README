@@ -251,6 +251,11 @@ And the following attributes:
 	protect
 	invis
 
+On terminals that support 256 colors it's also possible to use extended colors,
+by using "color<number>" as color name, where "<number>" is a number between
+0 and 255. For a complete chart of numbers and their corresponding colors,
+please see here: http://www.calmar.ws/vim/256-xterm-24bit-rgb-color-chart.html
+
 The terminal default colors are used when no background or no foreground color
 is specified. So keep care when only specifying one value. Example given text
 printed using the style string 'fg=white' can't be seen on terminals with a
