@@ -64,7 +64,7 @@ install: all stfl.pc
 	install -m 644 stfl.h $(DESTDIR)$(prefix)/include/
 	install -m 644 stfl.pc $(DESTDIR)$(prefix)/$(libdir)/pkgconfig/
 	install -m 644 libstfl.so.$(VERSION) $(DESTDIR)$(prefix)/$(libdir)
-	ln -s libstfl.so.$(VERSION) $(DESTDIR)$(prefix)/$(libdir)/libstfl.so
+	ln -fs libstfl.so.$(VERSION) $(DESTDIR)$(prefix)/$(libdir)/libstfl.so
 
 stfl.pc: stfl.pc.in
 	sed 's,@VERSION@,$(VERSION),g' < $< | sed 's,@PREFIX@,$(prefix),g' > $@
