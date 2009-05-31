@@ -53,11 +53,11 @@ Makefile.deps: *.c widgets/*.c *.h
 	mv -f Makefile.deps_new Makefile.deps
 
 install: all stfl.pc
-	mkdir -p $(DESTDIR)$(prefix)/lib/pkgconfig
+	mkdir -p $(DESTDIR)$(prefix)/$(libdir)/pkgconfig
 	mkdir -p $(DESTDIR)$(prefix)/include
-	install -m 644 libstfl.a $(DESTDIR)$(prefix)/lib/
+	install -m 644 libstfl.a $(DESTDIR)$(prefix)/$(libdir)
 	install -m 644 stfl.h $(DESTDIR)$(prefix)/include/
-	install -m 644 stfl.pc $(DESTDIR)$(prefix)/lib/pkgconfig/
+	install -m 644 stfl.pc $(DESTDIR)$(prefix)/$(libdir)/pkgconfig/
 
 stfl.pc: stfl.pc.in
 	sed 's,@VERSION@,$(VERSION),g' < $< | sed 's,@PREFIX@,$(prefix),g' > $@
