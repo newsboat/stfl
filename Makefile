@@ -24,9 +24,10 @@ export CC = gcc -pthread
 export CFLAGS += -I. -Wall -Os -ggdb -D_GNU_SOURCE -fPIC
 export LDLIBS += -lncursesw
 
+SONAME  := libstfl.so.0
 VERSION := 0.20
 
-all: libstfl.a example
+all: libstfl.so.$(VERSION) libstfl.a example
 
 example: libstfl.a example.o
 
@@ -35,6 +36,10 @@ libstfl.a: public.o base.o parser.o dump.o style.o binding.o iconv.o \
 	rm -f $@
 	ar qc $@ $^
 	ranlib $@
+
+libstfl.so.$(VERSION): public.o base.o parser.o dump.o style.o binding.o iconv.o \
+                       $(patsubst %.c,%.o,$(wildcard widgets/*.c))
+	$(CC) -shared -Wl,-soname,$(SONAME) -o $@ $^
 
 clean:
 	rm -f libstfl.a example core core.* *.o Makefile.deps
@@ -45,7 +50,7 @@ clean:
 	rm -f python/stfl_wrap.c python/stfl_wrap.o
 	rm -f ruby/Makefile ruby/stfl_wrap.c ruby/stfl_wrap.o
 	rm -f ruby/stfl.so ruby/build_ok Makefile.deps_new
-	rm -f stfl.pc
+	rm -f stfl.pc libstfl.so libstfl.so.*
 
 Makefile.deps: *.c widgets/*.c *.h
 	$(CC) -I. -MM *.c > Makefile.deps_new
@@ -58,6 +63,8 @@ install: all stfl.pc
 	install -m 644 libstfl.a $(DESTDIR)$(prefix)/$(libdir)
 	install -m 644 stfl.h $(DESTDIR)$(prefix)/include/
 	install -m 644 stfl.pc $(DESTDIR)$(prefix)/$(libdir)/pkgconfig/
+	install -m 644 libstfl.so.$(VERSION) $(DESTDIR)$(prefix)/$(libdir)
+	ln -s libstfl.so.$(VERSION) $(DESTDIR)$(prefix)/$(libdir)/libstfl.so
 
 stfl.pc: stfl.pc.in
 	sed 's,@VERSION@,$(VERSION),g' < $< | sed 's,@PREFIX@,$(prefix),g' > $@
