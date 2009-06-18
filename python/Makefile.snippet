@@ -19,7 +19,6 @@
 #
 
 PYTHON_VERSION = $(shell python -V 2>&1 | cut -f2 -d' ' | cut -f1-2 -d'.')
-PYTHON_SITELIB = $(shell python -c "from distutils.sysconfig import get_python_lib; print get_python_lib()")
 PYTHON_SITEARCH = $(shell python -c "from distutils.sysconfig import get_python_lib; print get_python_lib(1)")
 
 all: python/_stfl.so python/stfl.py python/stfl.pyc
@@ -33,9 +32,9 @@ python/_stfl.so python/stfl.py python/stfl.pyc: libstfl.a stfl.h python/stfl.i s
 	cd python && python -c 'import stfl'
 
 install_python: python/_stfl.so python/stfl.py python/stfl.pyc
-	mkdir -p $(DESTDIR)$(PYTHON_SITELIB)/
+	mkdir -p $(DESTDIR)$(PYTHON_SITEARCH)/
 	mkdir -p $(DESTDIR)$(PYTHON_SITEARCH)/lib-dynload/
 	cp python/_stfl.so $(DESTDIR)$(PYTHON_SITEARCH)/lib-dynload/
-	cp python/stfl.pyc $(DESTDIR)$(PYTHON_SITELIB)/
-	cp python/stfl.py $(DESTDIR)$(PYTHON_SITELIB)/
+	cp python/stfl.pyc $(DESTDIR)$(PYTHON_SITEARCH)/
+	cp python/stfl.py $(DESTDIR)$(PYTHON_SITEARCH)/
 
