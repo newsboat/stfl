@@ -25,7 +25,7 @@ export CFLAGS += -I. -Wall -Os -ggdb -D_GNU_SOURCE -fPIC
 export LDLIBS += -lncursesw
 
 SONAME  := libstfl.so.0
-VERSION := 0.20
+VERSION := 0.21
 
 all: libstfl.so.$(VERSION) libstfl.a example
 
