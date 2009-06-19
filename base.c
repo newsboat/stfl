@@ -491,6 +491,7 @@ void stfl_form_run(struct stfl_form *f, int timeout)
 		curses_active = 1;
 	}
 
+	stfl_colorpair_counter = 1;
 	f->root->type->f_prepare(f->root, f);
 
 	struct stfl_widget *fw = stfl_gather_focus_widget(f);

@@ -44,7 +44,10 @@ static wchar_t *wcssep(wchar_t **stringp, const wchar_t *delim) {
 }
 
 
-static int stfl_colorpair_counter = 0;
+#define STFL_MAX_COLOR_PAIRS 256
+static int stfl_colorpair_bg[STFL_MAX_COLOR_PAIRS];
+static int stfl_colorpair_fg[STFL_MAX_COLOR_PAIRS];
+int stfl_colorpair_counter = 1;
 
 void stfl_style(WINDOW *win, const wchar_t *style)
 {
@@ -152,18 +155,33 @@ void stfl_style(WINDOW *win, const wchar_t *style)
 		}
 	}
 
-	int i;
 	short f, b;
+	pair_content(0, &f, &b);
 
-	for (i=0; i<stfl_colorpair_counter && i<COLOR_PAIRS; i++) {
-		pair_content(i, &f, &b);
-		if ((f == fg_color || (f == 255 && fg_color == -1)) &&
-		    (b == bg_color || (b == 255 && bg_color == -1)))
+	if (fg_color < 0 || fg_color >= COLORS)
+		fg_color = f;
+
+	if (bg_color < 0 || bg_color >= COLORS)
+		bg_color = b;
+
+	int i;
+	for (i=1; i<stfl_colorpair_counter; i++) {
+		if (stfl_colorpair_fg[i] == fg_color && stfl_colorpair_bg[i] == bg_color)
 			break;
 	}
 
 	if (i == stfl_colorpair_counter) {
+		if (i == COLOR_PAIRS) {
+			fprintf(stderr, "Ncurses limit of color pairs (%d) reached!\n", COLOR_PAIRS);
+			abort();
+		}
+		if (i == STFL_MAX_COLOR_PAIRS) {
+			fprintf(stderr, "Internal STFL limit of color pairs (%d) reached!\n", STFL_MAX_COLOR_PAIRS);
+			abort();
+		}
 		init_pair(i, fg_color, bg_color);
+		stfl_colorpair_fg[i] = fg_color;
+		stfl_colorpair_bg[i] = bg_color;
 		stfl_colorpair_counter++;
 	}
 

@@ -84,6 +84,8 @@ struct stfl_form {
 	pthread_mutex_t mtx;
 };
 
+extern int stfl_colorpair_counter;
+
 extern struct stfl_widget_type *stfl_widget_types[];
 
 extern struct stfl_widget_type stfl_widget_type_label;
