@@ -39,7 +39,7 @@ libstfl.a: public.o base.o parser.o dump.o style.o binding.o iconv.o \
 
 libstfl.so.$(VERSION): public.o base.o parser.o dump.o style.o binding.o iconv.o \
                        $(patsubst %.c,%.o,$(wildcard widgets/*.c))
-	$(CC) -shared -Wl,-soname,$(SONAME) -o $@ $^
+	$(CC) -shared -Wl,-soname,$(SONAME) -o $@ $(LDLIBS) $^
 
 clean:
 	rm -f libstfl.a example core core.* *.o Makefile.deps
