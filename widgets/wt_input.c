@@ -38,17 +38,10 @@ static void fix_offset_pos(struct stfl_widget *w)
 	const wchar_t* text = stfl_widget_getkv_str(w, L"text", L"");
 	int text_len = wcslen(text);
 	int changed = 0;
-	int pos_width = 0;
-	int offset_width = 0;
-	int i;
+	int width;
 
 	if (pos > text_len) {
 		pos = text_len;
-		changed = 1;
-	}
-
-	if (offset > text_len) {
-		offset = text_len;
 		changed = 1;
 	}
 
@@ -57,13 +50,9 @@ static void fix_offset_pos(struct stfl_widget *w)
 		changed = 1;
 	}
 
-	for (i=0;i<pos;++i) {
-		pos_width += wcwidth(text[i]);
-	}
-
-	while (text[offset] && pos-offset >= w->w && pos_width-offset_width >= w->w && w->w > 0) {
-		offset_width += wcwidth(text[offset]);
-		offset++;
+	width = wcswidth(text + offset, pos - offset);
+	while (width >= w->w && pos > offset) {
+		width -= wcwidth(text[offset++]);
 		changed = 1;
 	}
 
@@ -88,26 +77,30 @@ static void wt_input_draw(struct stfl_widget *w, struct stfl_form *f, WINDOW *wi
 	int pos = stfl_widget_getkv_int(w, L"pos", 0);
 	int blind = stfl_widget_getkv_int(w, L"blind", 0);
 	int offset = stfl_widget_getkv_int(w, L"offset", 0);
-	const wchar_t *text = stfl_widget_getkv_str(w, L"text", L"");
-	int pos_width = 0, offset_width = 0, i;
+	const wchar_t * const text_off = stfl_widget_getkv_str(w, L"text", L"") + offset;
+	int i;
 
 	stfl_widget_style(w, f, win);
 
 	for (i=0; i<w->w; i++)
 		mvwaddwstr(win, w->y, w->x+i, L" ");
-	if (!blind)
-		mvwaddnwstr(win, w->y, w->x, text+offset, wcswidth(text+offset,w->w));
 
-	for (i=0;i<pos;++i) {
-		pos_width += wcwidth(text[i]);
-	}
+	if (!blind) {
+		const int off_len = wcslen(text_off);
+		int width, len;
 
-	for (i=0;i<offset;++i) {
-		offset_width += wcwidth(text[i]);
+		width = wcswidth(text_off, w->w);
+		if (w->w > off_len)
+			len = off_len;
+		else
+			len = w->w;
+		while (width > w->w)
+			width -= wcwidth(text_off[--len]);
+		mvwaddnwstr(win, w->y, w->x, text_off, len);
 	}
 
 	if (f->current_focus_id == w->id) {
-		f->cursor_x = w->x + pos_width - offset_width;
+		f->cursor_x = w->x + wcswidth(text_off, pos - offset);
 		f->cursor_y = w->y;
 	}
 }
@@ -150,8 +143,7 @@ static int wt_input_process(struct stfl_widget *w, struct stfl_widget *fw, struc
 			return 0;
 		wchar_t newtext[text_len];
 		wmemcpy(newtext, text, pos);
-		wmemcpy(newtext+pos, text+pos+1, text_len-(pos+1));
-		newtext[text_len-1] = 0;
+		wcscpy(newtext + pos, text + pos + 1);
 		stfl_widget_setkv_str(w, L"text", newtext);
 		fix_offset_pos(w);
 		return 1;
@@ -163,8 +155,7 @@ static int wt_input_process(struct stfl_widget *w, struct stfl_widget *fw, struc
 			return 0;
 		wchar_t newtext[text_len];
 		wmemcpy(newtext, text, pos-1);
-		wmemcpy(newtext+pos-1, text+pos, text_len-pos);
-		newtext[text_len-1] = 0;
+		wcscpy(newtext + pos - 1, text + pos);
 		stfl_widget_setkv_str(w, L"text", newtext);
 		stfl_widget_setkv_int(w, L"pos", pos-1);
 		fix_offset_pos(w);
@@ -176,8 +167,7 @@ static int wt_input_process(struct stfl_widget *w, struct stfl_widget *fw, struc
 		wchar_t newtext[text_len + 2];
 		wmemcpy(newtext, text, pos);
 		newtext[pos] = ch;
-		wmemcpy(newtext+pos+1, text+pos, text_len - pos);
-		newtext[text_len + 1] = 0;
+		wcscpy(newtext + pos + 1, text + pos);
 		stfl_widget_setkv_str(w, L"text", newtext);
 		stfl_widget_setkv_int(w, L"pos", pos+1);
 		fix_offset_pos(w);
