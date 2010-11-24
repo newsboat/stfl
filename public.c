@@ -300,19 +300,19 @@ void stfl_modify(struct stfl_form *f, const wchar_t *name, const wchar_t *mode, 
 	w = stfl_widget_by_name(f->root, name ? name : L"");
 
 	if (!w)
-		goto finish;
+		goto unlock;
 
 	mode = mode ? mode : L"";
 
 	if (!wcscmp(mode, L"delete") && w != f->root) {
 		stfl_widget_free(w);
-		goto finish;
+		goto unlock;
 	}
 
 	n = stfl_parser(text ? text : L"");
 
 	if (!n)
-		goto finish;
+		goto unlock;
 
 	if (!wcscmp(mode, L"replace")) {
 		if (w == f->root)
@@ -329,6 +329,7 @@ void stfl_modify(struct stfl_form *f, const wchar_t *name, const wchar_t *mode, 
 		stfl_modify_insert(w, n->first_child);
 		n->first_child = n->last_child = 0;
 		stfl_widget_free(n);
+		n = w;
 		goto finish;
 	}
 
@@ -341,6 +342,7 @@ void stfl_modify(struct stfl_form *f, const wchar_t *name, const wchar_t *mode, 
 		stfl_modify_insert(w, n->first_child);
 		n->first_child = n->last_child = 0;
 		stfl_widget_free(n);
+		n = w;
 		goto finish;
 	}
 
@@ -353,6 +355,7 @@ void stfl_modify(struct stfl_form *f, const wchar_t *name, const wchar_t *mode, 
 		stfl_modify_append(w, n->first_child);
 		n->first_child = n->last_child = 0;
 		stfl_widget_free(n);
+		n = w;
 		goto finish;
 	}
 
@@ -365,6 +368,7 @@ void stfl_modify(struct stfl_form *f, const wchar_t *name, const wchar_t *mode, 
 		stfl_modify_before(w, n->first_child);
 		n->first_child = n->last_child = 0;
 		stfl_widget_free(n);
+		n = w;
 		goto finish;
 	}
 
@@ -377,11 +381,13 @@ void stfl_modify(struct stfl_form *f, const wchar_t *name, const wchar_t *mode, 
 		stfl_modify_after(w, n->first_child);
 		n->first_child = n->last_child = 0;
 		stfl_widget_free(n);
+		n = w;
 		goto finish;
 	}
 
 finish:
-	stfl_check_setfocus(f, f->root);
+	stfl_check_setfocus(f, n);
+unlock:
 	pthread_mutex_unlock(&f->mtx);
 	return;
 }
