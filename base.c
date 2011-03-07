@@ -502,6 +502,10 @@ void stfl_form_run(struct stfl_form *f, int timeout)
 
 	if (timeout == -3) {
 		WINDOW *dummywin = newwin(0, 0, 0, 0);
+		if (dummywin == NULL) {
+			fprintf(stderr, "STFL Fatal Error: stfl_form_run() got a NULL pointer from newwin(0, 0, 0, 0).\n");
+			abort();
+		}
 		f->root->type->f_draw(f->root, f, dummywin);
 		delwin(dummywin);
 		pthread_mutex_unlock(&f->mtx);
