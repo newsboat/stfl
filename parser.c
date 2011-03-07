@@ -448,7 +448,7 @@ parser_error:;
 			fprintf(stderr, " ");
 		else
 		if (*text < 32)
-			fprintf(stderr, "\\%03lo", *text);
+			fprintf(stderr, "\\%03lo", (long unsigned int)*text);
 		else
 			fprintf(stderr, "%lc", (wint_t)*text);
 
