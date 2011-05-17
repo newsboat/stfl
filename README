@@ -590,7 +590,7 @@ than until the next stfl function call the caller must copy the strings.
 All strings passed to STFL functions are considered read-only by STFL and
 are neither modified nor freed by STFL.
 
-The functions which may return an undefined value will return a null-pointer
+The functions which may return an null value will return a null-pointer
 in C. All string parameters which are null-pointers are interpreted as they
 where empty strings.
 
@@ -668,8 +668,8 @@ stfl_run(form, timeout)
 ~~~~~~~~~~~~~~~~~~~~~~~
 
 Return the next event. If no more prior generated events are waiting display
-the form and process one input character. The event string can be an undefined
-value when something chaned in the form (e.g. the user changed the focus of
+the form and process one input character. The event string can be an null
+value when something changed in the form (e.g. the user changed the focus of
 the current widget) but all inputs have been handled internally inside of STFL.
 The event string can be "TIMEOUT" when the timeout has been reached, a key
 description is key has been pressed that is not beeing hadled internally in
@@ -683,10 +683,10 @@ parameter to 0 to disable the timeout.
 When the timeout parameter is set to -1 the form is displayed independent of
 the current status of the event queue and the function returns right after
 displaying the form without handling any input characters. In this mode always
-an undefined value is returned.
+an null value is returned.
 
 When the timeout parameter is set to -2 the displayed is not updated and the
-next pending event is returned. If there are no pending events an undefined
+next pending event is returned. If there are no pending events an null
 value is returned.
 
 When the timeout parameter is set to -3, rendering (and setting the :x, :y, :w
@@ -705,7 +705,7 @@ stfl_get(form, name)
 ~~~~~~~~~~~~~~~~~~~~
 
 Returns the current value of the specified variable. When the variable does not
-exist this function returns an undefined value.
+exist this function returns an null value.
 
 stfl_set(form, name, value)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -715,7 +715,7 @@ This sets the specified variable to the specified value.
 stfl_get_focus(form)
 ~~~~~~~~~~~~~~~~~~~~
 
-Returns the name of the widget which currently has the focus or an undefined
+Returns the name of the widget which currently has the focus or an null
 value when the widget having the focus has no name.
 
 stfl_set_focus(form, name)
@@ -733,12 +733,12 @@ stfl_dump(form, name, prefix, focus)
 
 Return the subtree starting with the widget specified in the 2nd parameter as
 STFL code fragment. The entire form is return when the 2nd parameter is an
-empty string or undefined. All widget and variable names in the dump are
+empty string or null. All widget and variable names in the dump are
 prefixed with the string in the 3rd parameter. The information which widget has
 the focus is also included in the dump when the 4th parameter is an integer
 not equal 0.
 
-The function returns an undefined value when there was an error.
+The function returns an null value when there was an error.
 
 stfl_modify(form, name, mode, text)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -799,7 +799,7 @@ This function is not implemented yet.
 stfl_error()
 ~~~~~~~~~~~~
 
-Return the error status of the last STFL call. This is undefined when no error
+Return the error status of the last STFL call. This is null when no error
 occoured and the error message otherwise. An error could e.g. be a parser
 error for broken STFL code.
 
