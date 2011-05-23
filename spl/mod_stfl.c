@@ -80,7 +80,7 @@ static struct spl_node *handler_stfl_create(struct spl_task *task, void *data)
 {
 	struct spl_node *n = SPL_NEW_STRING_DUP("STFL Form");
 	n->hnode_name = strdup("stfl_form");
-	n->hnode_data = stfl_create(stfl_ipool_towc(ipool, spl_clib_get_string(task)));;
+	n->hnode_data = stfl_create(stfl_ipool_towc(ipool, spl_clib_get_string(task)));
 	stfl_ipool_flush(ipool);
 	return n;
 }

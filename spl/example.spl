@@ -1,4 +1,4 @@
-#!/usr/bin/env splrun
+#!/usr/bin/env splrun_norl
 
 /*
  *  STFL - The Structured Terminal Forms Language/Library
