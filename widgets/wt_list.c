@@ -143,6 +143,11 @@ static void wt_list_draw(struct stfl_widget *w, struct stfl_form *f, WINDOW *win
 		}
 
 	}
+
+	if (f->current_focus_id == w->id) {
+		f->root->cur_y = f->cursor_y;
+		f->root->cur_x = f->cursor_x;
+	}
 }
 
 static int wt_list_process(struct stfl_widget *w, struct stfl_widget *fw, struct stfl_form *f, wchar_t ch, int isfunckey)

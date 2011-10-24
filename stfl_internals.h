@@ -63,7 +63,7 @@ struct stfl_widget {
 	struct stfl_widget *last_child;
 	struct stfl_kv *kv_list;
 	struct stfl_widget_type *type;
-	int id, x, y, w, h, min_w, min_h;
+	int id, x, y, w, h, min_w, min_h, cur_x, cur_y;
 	int parser_indent, allow_focus;
 	int setfocus;
 	void *internal_data;

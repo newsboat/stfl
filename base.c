@@ -514,6 +514,9 @@ void stfl_form_run(struct stfl_form *f, int timeout)
 
 	werase(stdscr);
 	f->root->type->f_draw(f->root, f, stdscr);
+	if (timeout == -1 && f->root->cur_y != -1 && f->root->cur_x != -1) {
+		wmove(stdscr, f->root->cur_y, f->root->cur_x);
+	}
 	refresh();
 
 	if (timeout < 0) {

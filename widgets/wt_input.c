@@ -100,8 +100,8 @@ static void wt_input_draw(struct stfl_widget *w, struct stfl_form *f, WINDOW *wi
 	}
 
 	if (f->current_focus_id == w->id) {
-		f->cursor_x = w->x + wcswidth(text_off, pos - offset);
-		f->cursor_y = w->y;
+		f->root->cur_x = f->cursor_x = w->x + wcswidth(text_off, pos - offset);
+		f->root->cur_y = f->cursor_y = w->y;
 	}
 }
 

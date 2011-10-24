@@ -118,7 +118,7 @@ static void wt_textview_draw(struct stfl_widget *w, struct stfl_form *f, WINDOW 
 	}
 
 	if (f->current_focus_id == w->id)
-		f->cursor_x = f->cursor_y = -1;
+		f->root->cur_x = f->root->cur_y = f->cursor_x = f->cursor_y = -1;
 }
 
 static int wt_textview_process(struct stfl_widget *w, struct stfl_widget *fw, struct stfl_form *f, wchar_t ch, int isfunckey)
