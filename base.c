@@ -688,7 +688,7 @@ unsigned int stfl_print_richtext(struct stfl_widget *w, WINDOW *win, unsigned in
 				len = p1 - p;
 			mvwaddnwstr(win, y, x, p, len);
 			retval += len;
-			x += len;
+			x += wcswidth(p, len);
 
 			if (p2) {
 				wchar_t stylename[p2 - p1];
