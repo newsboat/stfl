@@ -244,20 +244,6 @@ static int wt_textedit_process(struct stfl_widget *w, struct stfl_widget *fw, st
 		return 1;
 	}
 
-#if 0
-	if (stfl_matchbind(w, ch, isfunckey, L"backspace", L"BACKSPACE")) {
-		if (pos == 0)
-			return 0;
-		wchar_t newtext[text_len];
-		wmemcpy(newtext, text, pos-1);
-		wcscpy(newtext + pos - 1, text + pos);
-		stfl_widget_setkv_str(w, L"text", newtext);
-		stfl_widget_setkv_int(w, L"pos", pos-1);
-		fix_offset_pos(w);
-		return 1;
-	}
-#endif
-
 	if (stfl_matchbind(w, ch, isfunckey, L"enter", L"ENTER"))
 	{
 		if (c_current_line == NULL) {
