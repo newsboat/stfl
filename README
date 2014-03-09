@@ -536,6 +536,26 @@ listitem child widgets. Implements the following variables:
 		be used to restore the style_normal settings. this variables
 		are only used if the 'richtext' variable is set.
 
+textedit
+~~~~~~~~
+
+A widget for editing multiline text. The text itself is stored within
+listitem child widgets.
+
+	bind_up, bind_down, bind_left, bind_right, bind_page_up, bind_page_down
+		Key bindings for navigating the text
+
+	style_normal
+		The style the text itself is displayed.
+
+	style_end
+		The style used for the EOT-Markers.
+
+	cursor_x, cursor_y
+		Cursor position within the text
+
+	scroll_x, scroll_y
+		Current offset for horizontal and vertical scrolling
 
 Common Variables
 ----------------

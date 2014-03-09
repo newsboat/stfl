@@ -39,6 +39,7 @@ struct stfl_widget_type *stfl_widget_types[] = {
 	&stfl_widget_type_list,
 	&stfl_widget_type_listitem,
 	&stfl_widget_type_textview,
+	&stfl_widget_type_textedit,
 	0
 };
 
