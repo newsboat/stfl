@@ -603,6 +603,50 @@ void stfl_form_run(struct stfl_form *f, int timeout)
 
 		goto unshift_next_event;
 	}
+	else if ( wch == KEY_BTAB )
+	{
+		struct stfl_widget *old_fw = stfl_widget_by_id(f->root, f->current_focus_id);
+		struct stfl_widget *tmp_fw = f->root;
+		struct stfl_widget *fw = 0;
+
+focus_wrap_around:
+		while (tmp_fw && tmp_fw != old_fw)
+		{
+			if (tmp_fw->allow_focus && stfl_widget_getkv_int(tmp_fw, L"can_focus", 1))
+				fw = tmp_fw;
+
+			if (tmp_fw->first_child)
+				tmp_fw = tmp_fw->first_child;
+			else
+			if (tmp_fw->next_sibling)
+				tmp_fw = tmp_fw->next_sibling;
+			else
+			{
+				while (tmp_fw->parent && !tmp_fw->parent->next_sibling)
+					tmp_fw = tmp_fw->parent;
+				tmp_fw = tmp_fw->parent ? tmp_fw->parent->next_sibling : 0;
+			}
+		}
+
+		if (!fw && old_fw)
+		{
+			old_fw = f->root->last_child;
+			goto focus_wrap_around;
+		}
+
+		if (fw && old_fw != fw)
+		{
+			if (old_fw && old_fw->type->f_leave)
+				old_fw->type->f_leave(old_fw, f);
+
+			if (fw && fw->type->f_enter)
+				fw->type->f_enter(fw, f);
+
+			f->current_focus_id = fw ? fw->id : 0;
+		}
+
+		goto unshift_next_event;
+	}
 
 generate_event:
 	stfl_form_event(f, stfl_keyname(wch, rc == KEY_CODE_YES));
