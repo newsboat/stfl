@@ -603,7 +603,7 @@ void stfl_form_run(struct stfl_form *f, int timeout)
 
 		goto unshift_next_event;
 	}
-	else if ( wch == KEY_BTAB )
+	else if (rc == KEY_CODE_YES && wch == KEY_BTAB)
 	{
 		struct stfl_widget *old_fw = stfl_widget_by_id(f->root, f->current_focus_id);
 		struct stfl_widget *tmp_fw = f->root;
