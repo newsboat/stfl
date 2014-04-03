@@ -99,6 +99,27 @@ vbox
       label .tie:r
         text:"Short (right)"
 
+  table
+    .expand:0
+
+    @input#style_focus:bg=blue,fg=white,attr=bold
+    @input#style_normal:bg=blue,fg=black
+    @input#.border:rtb
+
+    @L#style_normal:fg=red
+    @L#.expand:0
+    @L#.border:ltb
+    @L#.spacer:r
+
+    label#L
+      text:'Field D:'
+      .expand:0
+    input
+      .colspan:3
+      text[value_a]:'Non-focusable!'
+      .expand:h
+      can_focus:0
+
   textview[textview]
     .expand:0
     @style_blue_normal:fg=blue

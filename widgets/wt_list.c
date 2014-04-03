@@ -25,10 +25,36 @@
 #include <string.h>
 #include <stdlib.h>
 
+struct stfl_widget *first_focusable_child(struct stfl_widget *w)
+{
+	int i;
+	struct stfl_widget *c;
+
+	for (i=0, c=w->first_child; c; i++, c=c->next_sibling)
+	{
+		if (stfl_widget_getkv_int(c, L"can_focus", 1))
+			return c;
+	}
+	return 0;
+}
+
+static int first_focusable_pos(struct stfl_widget *w)
+{
+	int i;
+	struct stfl_widget *c;
+
+	for (i=0, c=w->first_child; c; i++, c=c->next_sibling)
+	{
+		if (stfl_widget_getkv_int(c, L"can_focus", 1))
+			return i;
+	}
+	return 0;
+}
+
 static void fix_offset_pos(struct stfl_widget *w)
 {
 	int offset = stfl_widget_getkv_int(w, L"offset", 0);
-	int pos = stfl_widget_getkv_int(w, L"pos", 0);
+	int pos = stfl_widget_getkv_int(w, L"pos", first_focusable_pos(w));
 
 	int orig_offset = offset;
 	int orig_pos = pos;
@@ -40,11 +66,12 @@ static void fix_offset_pos(struct stfl_widget *w)
 		while (pos >= offset+w->h)
 			offset++;
 
+	int i;
 	int maxpos = -1;
-	struct stfl_widget *c = w->first_child;
-	while (c) {
-		maxpos++;
-		c = c->next_sibling;
+	struct stfl_widget *c;
+	for (i=0, c=w->first_child; c; i++, c=c->next_sibling) {
+		if (stfl_widget_getkv_int(c, L"can_focus", 1))
+			maxpos= i;
 	}
 
 	if (maxpos >= 0 && pos > maxpos)
@@ -57,9 +84,43 @@ static void fix_offset_pos(struct stfl_widget *w)
 		stfl_widget_setkv_int(w, L"pos", pos);
 }
 
+static void stfl_focus_prev_pos(struct stfl_widget *w)
+{
+	int i;
+	struct stfl_widget *c;
+	int pos = stfl_widget_getkv_int(w, L"pos", first_focusable_pos(w));
+
+	for (i=0, c=w->first_child; c; i++, c=c->next_sibling)
+	{
+		if (i >= pos)
+			break;
+		if (stfl_widget_getkv_int(c, L"can_focus", 1))
+			stfl_widget_setkv_int(w, L"pos", i);
+	}
+	fix_offset_pos(w);
+}
+
+static void stfl_focus_next_pos(struct stfl_widget *w)
+{
+	int i;
+	struct stfl_widget *c;
+	int pos = stfl_widget_getkv_int(w, L"pos", first_focusable_pos(w));
+
+	for (i=0, c=w->first_child; c; i++, c=c->next_sibling)
+	{
+		if (i <= pos)
+			continue;
+		if (stfl_widget_getkv_int(c, L"can_focus", 1)) {
+			stfl_widget_setkv_int(w, L"pos", i);
+			break;
+		}
+	}
+	fix_offset_pos(w);
+}
+
 static void wt_list_prepare(struct stfl_widget *w, struct stfl_form *f)
 {
-	struct stfl_widget *c = w->first_child;
+	struct stfl_widget *c = first_focusable_child(w);
 	
 	w->min_w = 1;
 	w->min_h = 5;
@@ -81,7 +142,7 @@ static void wt_list_draw(struct stfl_widget *w, struct stfl_form *f, WINDOW *win
 	fix_offset_pos(w);
 
 	int offset = stfl_widget_getkv_int(w, L"offset", 0);
-	int pos = stfl_widget_getkv_int(w, L"pos", 0);
+	int pos = stfl_widget_getkv_int(w, L"pos", first_focusable_pos(w));
 
 	int is_richtext = stfl_widget_getkv_int(w, L"richtext", 0);
 
@@ -152,24 +213,23 @@ static void wt_list_draw(struct stfl_widget *w, struct stfl_form *f, WINDOW *win
 
 static int wt_list_process(struct stfl_widget *w, struct stfl_widget *fw, struct stfl_form *f, wchar_t ch, int isfunckey)
 {
-	int pos = stfl_widget_getkv_int(w, L"pos", 0);
-	int maxpos = -1;
+	int pos = stfl_widget_getkv_int(w, L"pos", first_focusable_pos(w));
 
-	struct stfl_widget *c = w->first_child;
-	while (c) {
-		maxpos++;
-		c = c->next_sibling;
+	int i;
+	int maxpos = -1;
+	struct stfl_widget *c;
+	for (i=0, c=w->first_child; c; i++, c=c->next_sibling) {
+		if (stfl_widget_getkv_int(c, L"can_focus", 1))
+			maxpos= i;
 	}
 
 	if (pos > 0 && stfl_matchbind(w, ch, isfunckey, L"up", L"UP")) {
-		stfl_widget_setkv_int(w, L"pos", pos-1);
-		fix_offset_pos(w);
+		stfl_focus_prev_pos(w);
 		return 1;
 	}
 		
 	if (pos < maxpos && stfl_matchbind(w, ch, isfunckey, L"down", L"DOWN")) {
-		stfl_widget_setkv_int(w, L"pos", pos+1);
-		fix_offset_pos(w);
+		stfl_focus_next_pos(w);
 		return 1;
 	}
 	
@@ -182,13 +242,13 @@ static int wt_list_process(struct stfl_widget *w, struct stfl_widget *fw, struct
 
 	if (stfl_matchbind(w, ch, isfunckey, L"page_up", L"PPAGE")) {
 		if (pos > w->h) stfl_widget_setkv_int(w, L"pos", pos - w->h);
-		else stfl_widget_setkv_int(w, L"pos", 0);
+		else stfl_widget_setkv_int(w, L"pos", first_focusable_pos(w));
 		fix_offset_pos(w);
 		return 1;
 	}
 
 	if (stfl_matchbind(w, ch, isfunckey, L"home", L"HOME")) {
-		stfl_widget_setkv_int(w, L"pos", 0);
+		stfl_widget_setkv_int(w, L"pos", first_focusable_pos(w));
 		fix_offset_pos(w);
 		return 1;
 	}
@@ -215,7 +275,7 @@ struct stfl_widget_type stfl_widget_type_list = {
 
 static void wt_listitem_init(struct stfl_widget *w)
 {
-	if (w->parent && !wcscmp(w->parent->type->name, L"list"))
+	if (w->parent && !wcscmp(w->parent->type->name, L"list") && stfl_widget_getkv_int(w, L"can_focus", 1))
 		w->parent->allow_focus = 1;
 }
 

@@ -587,6 +587,14 @@ are evaluated before the keypresses are passed to the widget. The '*' part
 of the on_* variables is a key description. E.g. "on_^X:foobar" will let
 stfl_run() return the string "foobar" when Ctrl-X is beeing pressed.
 
+can_focus
+~~~~~~~~~
+
+Setting can_focus to '0' on a widget will make it non-focusable, even if
+it is a widget that could otherwise have focus (input, listitem, etc.).
+The widget is still focusable manually by prefixing it with a '!' or
+using stfl_set_focus().
+
 
 The Common STFL Scripting Language API
 --------------------------------------

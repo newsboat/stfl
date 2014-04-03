@@ -337,7 +337,7 @@ struct stfl_widget *stfl_find_child_tree(struct stfl_widget *w, struct stfl_widg
 
 extern struct stfl_widget *stfl_find_first_focusable(struct stfl_widget *w)
 {
-	if (w->allow_focus)
+	if (w->allow_focus && stfl_widget_getkv_int(w, L"can_focus", 1))
 		return w;
 
 	struct stfl_widget *c = w->first_child;
@@ -588,7 +588,7 @@ void stfl_form_run(struct stfl_form *f, int timeout)
 
 			if (!fw && old_fw)
 				fw = f->root;
-		} while (fw && !fw->allow_focus);
+		} while (fw && !(fw->allow_focus && stfl_widget_getkv_int(fw, L"can_focus", 1)));
 
 		if (old_fw != fw)
 		{
