@@ -436,6 +436,12 @@ by this widget:
 		The text displayed when the checkbox' value is 1. Default value
 		is "[X]".
 
+	pos
+		The cursor position within text_0/text_1. The default value is
+		1, which works fine for "[ ]" and "[X]". But for example for
+		text_0:"--> <--" and text_1:"==>X<==" you would want to set it
+		to 3 instead.
+
 	value
 		The checkbox' state (0 or 1).
 

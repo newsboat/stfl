@@ -31,23 +31,14 @@ static void wt_checkbox_init(struct stfl_widget *w)
 	w->allow_focus = 1;
 }
 
-static void fix_offset_pos(struct stfl_widget *w)
-{
-		// XXX: Find the first differing character in text_0 and text_1
-		// instead of always setting this value to 1?
-		stfl_widget_setkv_int(w, L"pos", 1);
-}
-
 static void wt_checkbox_prepare(struct stfl_widget *w, struct stfl_form *f)
 {
-	const wchar_t * text = stfl_widget_getkv_int(w, L"value", 0) ? 
-		stfl_widget_getkv_str(w, L"text_1", L"[X]") :
-		stfl_widget_getkv_str(w, L"text_0", L"[ ]");
+	const wchar_t * text = stfl_widget_getkv_int(w, L"value", 0) ?
+			stfl_widget_getkv_str(w, L"text_1", L"[X]") :
+			stfl_widget_getkv_str(w, L"text_0", L"[ ]");
 
 	w->min_w = wcswidth(text, wcslen(text));
 	w->min_h = 1;
-
-	fix_offset_pos(w);
 }
 
 static void wt_checkbox_draw(struct stfl_widget *w, struct stfl_form *f, WINDOW *win)
@@ -62,18 +53,15 @@ static void wt_checkbox_draw(struct stfl_widget *w, struct stfl_form *f, WINDOW 
 	stfl_widget_style(w, f, win);
 
 	text = stfl_widget_getkv_int(w, L"value", 0) ? 
-		stfl_widget_getkv_str(w, L"text_1", L"[X]") :
-		stfl_widget_getkv_str(w, L"text_0", L"[ ]");
+			stfl_widget_getkv_str(w, L"text_1", L"[X]") :
+			stfl_widget_getkv_str(w, L"text_0", L"[ ]");
 
-	if (1) {
-		wchar_t *fillup = malloc(sizeof(wchar_t)*(w->w + 1));
-		for (i=0;i < w->w;++i) {
-			fillup[i] = L' ';
-		}
-		fillup[w->w] = L'\0';
-		mvwaddnwstr(win, w->y, w->x, fillup, wcswidth(fillup,wcslen(fillup)));
-		free(fillup);
-	}
+	wchar_t *fillup = malloc(sizeof(wchar_t)*(w->w + 1));
+	for (i=0;i < w->w;++i)
+		fillup[i] = L' ';
+	fillup[w->w] = L'\0';
+	mvwaddnwstr(win, w->y, w->x, fillup, wcswidth(fillup,wcslen(fillup)));
+	free(fillup);
 
 	if (is_richtext)
 		stfl_print_richtext(w, win, w->y, w->x, text, w->w, style, 0);
@@ -81,7 +69,7 @@ static void wt_checkbox_draw(struct stfl_widget *w, struct stfl_form *f, WINDOW 
 		mvwaddnwstr(win, w->y, w->x, text, w->w);
 
 	if (f->current_focus_id == w->id) {
-		f->root->cur_x = f->cursor_x = w->x + stfl_widget_getkv_int(w, L"pos", 0);
+		f->root->cur_x = f->cursor_x = w->x + stfl_widget_getkv_int(w, L"pos", 1);
 		f->root->cur_y = f->cursor_y = w->y;
 	}
 }
@@ -89,16 +77,8 @@ static void wt_checkbox_draw(struct stfl_widget *w, struct stfl_form *f, WINDOW 
 static int wt_checkbox_process(struct stfl_widget *w, struct stfl_widget *fw, struct stfl_form *f, wchar_t ch, int isfunckey)
 {
 	if (stfl_matchbind(w, ch, isfunckey, L"toggle", L"ENTER SPACE")) {
-
 		int value = stfl_widget_getkv_int(w, L"value", 0);
-		if(value) {
-			stfl_widget_setkv_int(w, L"value", 0);
-		} else {
-			stfl_widget_setkv_int(w, L"value", 1);
-		}
-
-		fix_offset_pos(w);
-
+		stfl_widget_setkv_int(w, L"value", !value);
 		return 1;
 	}
 
