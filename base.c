@@ -40,6 +40,7 @@ struct stfl_widget_type *stfl_widget_types[] = {
 	&stfl_widget_type_listitem,
 	&stfl_widget_type_textview,
 	&stfl_widget_type_textedit,
+	&stfl_widget_type_checkbox,
 	0
 };
 

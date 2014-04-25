@@ -411,6 +411,34 @@ supported by this widget:
 		The offset of the text displayed in the input box
 		(when the text is larger then the input box).
 
+checkbox
+~~~~~~~~
+
+Implementation of a checkbox. The following variables are supported
+by this widget:
+
+	bind_toggle
+		The keys used to toggle the checkbox value. Default value is
+    "ENTER SPACE", meaning the ENTER and SPACE keys.
+
+	style_normal
+		The style of this widget when it does not have the
+		focus.
+
+	style_focus
+		The style of this widget when it does have the focus.
+
+	text_0
+		The text displayed when the checkbox' value is 0. Default value
+		is "[ ]".
+
+	text_1
+		The text displayed when the checkbox' value is 1. Default value
+		is "[X]".
+
+	value
+		The checkbox' state (0 or 1).
+
 table
 ~~~~~
 

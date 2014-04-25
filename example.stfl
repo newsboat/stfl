@@ -103,8 +103,12 @@ vbox
     .expand:0
 
     @input#style_focus:bg=blue,fg=white,attr=bold
-    @input#style_normal:bg=blue,fg=black
+    @input#style_normal:bg=blue,fg=white
     @input#.border:rtb
+
+    @checkbox#style_focus:bg=blue,fg=white,attr=bold
+    @checkbox#style_normal:bg=blue,fg=white
+    @checkbox#.border:rtb
 
     @L#style_normal:fg=red
     @L#.expand:0
@@ -115,10 +119,15 @@ vbox
       text:'Field D:'
       .expand:0
     input
-      .colspan:3
+      .colspan:2
       text[value_a]:'Non-focusable!'
       .expand:h
       can_focus:0
+    checkbox
+      text_0:"[ ] Checkbox"
+      text_1:"[X] Checkbox"
+      value:1
+      bind_toggle:"ENTER SPACE BACKSPACE"
 
   textview[textview]
     .expand:0

@@ -98,6 +98,7 @@ extern struct stfl_widget_type stfl_widget_type_list;
 extern struct stfl_widget_type stfl_widget_type_listitem;
 extern struct stfl_widget_type stfl_widget_type_textview;
 extern struct stfl_widget_type stfl_widget_type_textedit;
+extern struct stfl_widget_type stfl_widget_type_checkbox;
 
 extern struct stfl_widget *stfl_widget_new(const wchar_t *type);
 extern void stfl_widget_free(struct stfl_widget *w);
