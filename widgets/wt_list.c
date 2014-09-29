@@ -32,7 +32,8 @@ struct stfl_widget *first_focusable_child(struct stfl_widget *w)
 
 	for (i=0, c=w->first_child; c; i++, c=c->next_sibling)
 	{
-		if (stfl_widget_getkv_int(c, L"can_focus", 1))
+		if (stfl_widget_getkv_int(c, L"can_focus", 1) &&
+		    stfl_widget_getkv_int(c, L".display", 1))
 			return c;
 	}
 	return 0;
@@ -45,7 +46,8 @@ static int first_focusable_pos(struct stfl_widget *w)
 
 	for (i=0, c=w->first_child; c; i++, c=c->next_sibling)
 	{
-		if (stfl_widget_getkv_int(c, L"can_focus", 1))
+		if (stfl_widget_getkv_int(c, L"can_focus", 1) &&
+		    stfl_widget_getkv_int(c, L".display", 1))
 			return i;
 	}
 	return 0;
@@ -70,7 +72,8 @@ static void fix_offset_pos(struct stfl_widget *w)
 	int maxpos = -1;
 	struct stfl_widget *c;
 	for (i=0, c=w->first_child; c; i++, c=c->next_sibling) {
-		if (stfl_widget_getkv_int(c, L"can_focus", 1))
+		if (stfl_widget_getkv_int(c, L"can_focus", 1) &&
+		    stfl_widget_getkv_int(c, L".display", 1))
 			maxpos= i;
 	}
 
@@ -94,7 +97,8 @@ static void stfl_focus_prev_pos(struct stfl_widget *w)
 	{
 		if (i >= pos)
 			break;
-		if (stfl_widget_getkv_int(c, L"can_focus", 1))
+		if (stfl_widget_getkv_int(c, L"can_focus", 1) &&
+		    stfl_widget_getkv_int(c, L".display", 1))
 			stfl_widget_setkv_int(w, L"pos", i);
 	}
 	fix_offset_pos(w);
@@ -110,7 +114,8 @@ static void stfl_focus_next_pos(struct stfl_widget *w)
 	{
 		if (i <= pos)
 			continue;
-		if (stfl_widget_getkv_int(c, L"can_focus", 1)) {
+		if (stfl_widget_getkv_int(c, L"can_focus", 1) &&
+		    stfl_widget_getkv_int(c, L".display", 1)) {
 			stfl_widget_setkv_int(w, L"pos", i);
 			break;
 		}
@@ -219,7 +224,8 @@ static int wt_list_process(struct stfl_widget *w, struct stfl_widget *fw, struct
 	int maxpos = -1;
 	struct stfl_widget *c;
 	for (i=0, c=w->first_child; c; i++, c=c->next_sibling) {
-		if (stfl_widget_getkv_int(c, L"can_focus", 1))
+		if (stfl_widget_getkv_int(c, L"can_focus", 1) &&
+		    stfl_widget_getkv_int(c, L".display", 1))
 			maxpos= i;
 	}
 
@@ -275,7 +281,9 @@ struct stfl_widget_type stfl_widget_type_list = {
 
 static void wt_listitem_init(struct stfl_widget *w)
 {
-	if (w->parent && !wcscmp(w->parent->type->name, L"list") && stfl_widget_getkv_int(w, L"can_focus", 1))
+	if (w->parent && !wcscmp(w->parent->type->name, L"list") &&
+	    stfl_widget_getkv_int(w, L"can_focus", 1) &&
+	    stfl_widget_getkv_int(w, L".display", 1))
 		w->parent->allow_focus = 1;
 }
 

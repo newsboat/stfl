@@ -338,14 +338,17 @@ struct stfl_widget *stfl_find_child_tree(struct stfl_widget *w, struct stfl_widg
 
 extern struct stfl_widget *stfl_find_first_focusable(struct stfl_widget *w)
 {
-	if (w->allow_focus && stfl_widget_getkv_int(w, L"can_focus", 1))
+	if (w->allow_focus && stfl_widget_getkv_int(w, L"can_focus", 1) &&
+	    stfl_widget_getkv_int(w, L".display", 1))
 		return w;
 
 	struct stfl_widget *c = w->first_child;
 	while (c) {
-		struct stfl_widget *r = stfl_find_first_focusable(c);
-		if (r)
-			return r;
+		if (stfl_widget_getkv_int(w, L".display", 1)) {
+			struct stfl_widget *r = stfl_find_first_focusable(c);
+			if (r)
+				return r;
+		}
 		c = c->next_sibling;
 	}
 
