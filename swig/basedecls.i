@@ -85,13 +85,13 @@ typedef struct {
 		ipool_reset();
 		return FROMWC(stfl_dump(self, TOWC(name), TOWC(prefix), focus));
 	}
+	const char *text(const char *name) {
+		ipool_reset();
+		return FROMWC(stfl_text(self, TOWC(name)));
+	}
 	void modify(const char *name, const char *mode, const char *text) {
 		ipool_reset();
 		stfl_modify(self, TOWC(name), TOWC(mode), TOWC(text));
-	}
-	const char *lookup(const char *path, const char *newname) {
-		ipool_reset();
-		return FROMWC(stfl_lookup(self, TOWC(path), TOWC(newname)));
 	}
 }
 
@@ -145,16 +145,16 @@ static const char *stfl_dump_wrapper(struct stfl_form *f, const char *name, cons
 	return FROMWC(stfl_dump(f, TOWC(name), TOWC(prefix), focus));
 }
 
+static const char *stfl_text_wrapper(struct stfl_form *f, const char *name)
+{
+	ipool_reset();
+	return FROMWC(stfl_text(f, TOWC(name)));
+}
+
 static void stfl_modify_wrapper(struct stfl_form *f, const char *name, const char *mode, const char *text)
 {
 	ipool_reset();
 	stfl_modify(f, TOWC(name), TOWC(mode), TOWC(text));
-}
-
-static const char *stfl_lookup_wrapper(struct stfl_form *f, const char *path, const char *newname)
-{
-	ipool_reset();
-	return FROMWC(stfl_lookup(f, TOWC(path), TOWC(newname)));
 }
 
 static const char *stfl_error_wrapper()
@@ -179,8 +179,8 @@ static const char *stfl_get_focus_wrapper(struct stfl_form *f);
 static void stfl_set_focus_wrapper(struct stfl_form *f, const char *name);
 static const char *stfl_quote_wrapper(const char *text);
 static const char *stfl_dump_wrapper(struct stfl_form *f, const char *name, const char *prefix, int focus);
+static const char *stfl_text_wrapper(struct stfl_form *f, const char *name);
 static void stfl_modify_wrapper(struct stfl_form *f, const char *name, const char *mode, const char *text);
-static const char *stfl_lookup_wrapper(struct stfl_form *f, const char *path, const char *newname);
 static const char *stfl_error_wrapper();
 static void stfl_error_action_wrapper(const char *mode);
 extern void stfl_reset();

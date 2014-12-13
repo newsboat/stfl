@@ -802,6 +802,14 @@ not equal 0.
 
 The function returns an null value when there was an error.
 
+stfl_text(form, name)
+~~~~~~~~~~~~~~~~~~~~~
+
+Return the concatenation of all "listitem text" variables under the specified
+widget. This is useful for reading the text in "textedit" widgets.
+
+The function returns an null value when there was an error.
+
 stfl_modify(form, name, mode, text)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -850,13 +858,6 @@ code should be added to the widget tree:
 
 The widget type of the root element of the tree passed in the 4th parameter
 doesn't matter in the *_inner modes.
-
-stfl_lookup(form, path, newname)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Lookup widgets in the form using a path and optionally assign a new name.
-
-This function is not implemented yet.
 
 stfl_error()
 ~~~~~~~~~~~~
@@ -940,5 +941,4 @@ TODOs
 
 - Implement so far unimplemented widgets
 - Missing error handling and reporting
-- Implement stfl_lookup() function
 

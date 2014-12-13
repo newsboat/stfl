@@ -99,6 +99,11 @@ vbox
       label .tie:r
         text:"Short (right)"
 
+  textedit[textedit]
+      .expand:0
+      listitem text:"This is the first line"
+      listitem text:"This is the second line"
+
   table
     .expand:0
 

@@ -160,8 +160,6 @@ static void wt_list_draw(struct stfl_widget *w, struct stfl_form *f, WINDOW *win
 	struct stfl_widget *c;
 	int i, j;
 
-	unsigned int width = 0;
-
 	if (f->current_focus_id == w->id)
 		f->cursor_x = f->cursor_y = -1;
 
@@ -202,12 +200,9 @@ static void wt_list_draw(struct stfl_widget *w, struct stfl_form *f, WINDOW *win
 		}
 
 		if (is_richtext)
-			width = stfl_print_richtext(w, win, w->y+i-offset, w->x, text, w->w, cur_style, has_focus);
-		else {
+			stfl_print_richtext(w, win, w->y+i-offset, w->x, text, w->w, cur_style, has_focus);
+		else
 			mvwaddnwstr(win, w->y+i-offset, w->x, text, w->w);
-			width = wcslen(text);
-		}
-
 	}
 
 	if (f->current_focus_id == w->id) {

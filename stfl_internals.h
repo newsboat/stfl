@@ -142,6 +142,7 @@ extern struct stfl_widget *stfl_parser_file(const char *filename);
 
 extern wchar_t *stfl_quote_backend(const wchar_t *text);
 extern wchar_t *stfl_widget_dump(struct stfl_widget *w, const wchar_t *prefix, int focus_id);
+extern wchar_t *stfl_widget_text(struct stfl_widget *w);
 
 extern void stfl_style(WINDOW *win, const wchar_t *style);
 extern void stfl_widget_style(struct stfl_widget *w, struct stfl_form *f, WINDOW *win);

@@ -48,9 +48,9 @@ extern void stfl_set_focus(struct stfl_form *f, const wchar_t *name);
 
 extern const wchar_t *stfl_quote(const wchar_t *text);
 extern const wchar_t *stfl_dump(struct stfl_form *f, const wchar_t *name, const wchar_t *prefix, int focus);
+extern const wchar_t *stfl_text(struct stfl_form *f, const wchar_t *name);
 
 extern void stfl_modify(struct stfl_form *f, const wchar_t *name, const wchar_t *mode, const wchar_t *text);
-extern const wchar_t *stfl_lookup(struct stfl_form *f, const wchar_t *path, const wchar_t *newname);
 
 extern const wchar_t *stfl_error();
 extern void stfl_error_action(const wchar_t *mode);

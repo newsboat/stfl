@@ -31,8 +31,8 @@
 
 %rename(stfl_quote) stfl_quote_wrapper;
 %rename(stfl_dump) stfl_dump_wrapper;
+%rename(stfl_text) stfl_text_wrapper;
 %rename(stfl_modify) stfl_modify_wrapper;
-%rename(stfl_lookup) stfl_lookup_wrapper;
 
 %rename(stfl_error) stfl_error_wrapper;
 %rename(stfl_error_action) stfl_error_action_wrapper;

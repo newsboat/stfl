@@ -185,6 +185,20 @@ static struct spl_node *handler_stfl_dump(struct spl_task *task, void *data)
 }
 
 /**
+ * Dump the text under a widget
+ */
+// builtin stfl_text(form, name)
+static struct spl_node *handler_stfl_text(struct spl_task *task, void *data)
+{
+	struct stfl_form *f = clib_get_stfl_form(task);
+	char *name = spl_clib_get_string(task);
+	const char *text = stfl_ipool_fromwc(ipool, stfl_text(f, stfl_ipool_towc(ipool, name)));
+	struct spl_node *n = spl_new_nullable_ascii(text);
+	stfl_ipool_flush(ipool);
+	return n;
+}
+
+/**
  * Import STFL code to an existing form
  */
 // builtin stfl_modify(form, name, mode, text)
@@ -197,20 +211,6 @@ static struct spl_node *handler_stfl_modify(struct spl_task *task, void *data)
 	stfl_modify(f, stfl_ipool_towc(ipool, name), stfl_ipool_towc(ipool, mode), stfl_ipool_towc(ipool, text));
 	stfl_ipool_flush(ipool);
 	return 0;
-}
-
-/**
- * Lookup widgets in the form using a path and optionally assign a new name
- */
-// builtin stfl_lookup(form, path, newname)
-static struct spl_node *handler_stfl_lookup(struct spl_task *task, void *data)
-{
-	struct stfl_form *f = clib_get_stfl_form(task);
-	char *path = spl_clib_get_string(task);
-	char *newname = spl_clib_get_string(task);
-	struct spl_node *ret = spl_new_nullable_ascii(stfl_ipool_fromwc(ipool, stfl_lookup(f, stfl_ipool_towc(ipool, path), stfl_ipool_towc(ipool, newname))));
-	stfl_ipool_flush(ipool);
-	return ret;
 }
 
 /**
@@ -267,8 +267,8 @@ void SPL_ABI(spl_mod_stfl_init)(struct spl_vm *vm, struct spl_module *mod, int r
 	spl_clib_reg(vm, "stfl_quote", handler_stfl_quote, 0);
 
 	spl_clib_reg(vm, "stfl_dump", handler_stfl_dump, 0);
+	spl_clib_reg(vm, "stfl_text", handler_stfl_text, 0);
 	spl_clib_reg(vm, "stfl_modify", handler_stfl_modify, 0);
-	spl_clib_reg(vm, "stfl_lookup", handler_stfl_lookup, 0);
 
 	spl_clib_reg(vm, "stfl_error", handler_stfl_error, 0);
 	spl_clib_reg(vm, "stfl_error_action", handler_stfl_error_action, 0);

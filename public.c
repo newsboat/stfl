@@ -203,6 +203,38 @@ const wchar_t *stfl_dump(struct stfl_form *f, const wchar_t *name, const wchar_t
 	return checkret(retbuffer);
 }
 
+const wchar_t *stfl_text(struct stfl_form *f, const wchar_t *name)
+{
+	static pthread_mutex_t mtx = PTHREAD_MUTEX_INITIALIZER;
+	static pthread_key_t retbuffer_key;
+	static int firstrun = 1;
+	static wchar_t *retbuffer = 0;
+	struct stfl_widget *w;
+
+	pthread_mutex_lock(&mtx);
+	pthread_mutex_lock(&f->mtx);
+
+	if (firstrun) {
+		pthread_key_create(&retbuffer_key, free);
+		firstrun = 0;
+	}
+
+	retbuffer = pthread_getspecific(retbuffer_key);
+
+	if (retbuffer)
+		free(retbuffer);
+
+	w = name && *name ? stfl_widget_by_name(f->root, name) : f->root;
+	retbuffer = stfl_widget_text(w);
+
+	pthread_setspecific(retbuffer_key, retbuffer);
+
+	pthread_mutex_unlock(&f->mtx);
+	pthread_mutex_unlock(&mtx);
+
+	return checkret(retbuffer);
+}
+
 static void stfl_modify_before(struct stfl_widget *w, struct stfl_widget *n)
 {
 	if (!n || !w || !w->parent)
@@ -390,11 +422,6 @@ finish:
 unlock:
 	pthread_mutex_unlock(&f->mtx);
 	return;
-}
-
-const wchar_t *stfl_lookup(struct stfl_form *f, const wchar_t *path, const wchar_t *newname)
-{
-	return checkret(0);
 }
 
 const wchar_t *stfl_error()

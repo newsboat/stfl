@@ -121,6 +121,25 @@ static void mydump(struct stfl_widget *w, const wchar_t *prefix, int focus_id, s
 	newtxt(txt, L"}");
 }
 
+static void mytext(struct stfl_widget *w, struct txtnode **txt)
+{
+	if (!wcscmp(w->type->name, L"listitem"))
+	{
+		struct stfl_kv *kv = w->kv_list;
+		while (kv) {
+			if (!wcscmp(kv->key, L"text"))
+				newtxt(txt, L"%ls\n", kv->value);
+			kv = kv->next;
+		}
+	}
+
+	struct stfl_widget *c = w->first_child;
+	while (c) {
+		mytext(c, txt);
+		c = c->next_sibling;
+	}
+}
+
 static wchar_t *txt2string(struct txtnode *txt)
 {
 	int string_len = 0;
@@ -157,6 +176,13 @@ wchar_t *stfl_widget_dump(struct stfl_widget *w, const wchar_t *prefix, int focu
 {
 	struct txtnode *txt = 0;
 	mydump(w, prefix, focus_id, &txt);
+	return txt2string(txt);
+}
+
+wchar_t *stfl_widget_text(struct stfl_widget *w)
+{
+	struct txtnode *txt = 0;
+	mytext(w, &txt);
 	return txt2string(txt);
 }
 

@@ -46,6 +46,7 @@ int main()
 		event = stfl_run(f, 0);
 
 	stfl_reset();
+	printf("%ls", stfl_text(f, L"textedit"));
 
 	printf("A: %ls\n", stfl_get(f, L"value_a"));
 	printf("B: %ls\n", stfl_get(f, L"value_b"));
