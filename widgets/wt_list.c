@@ -75,6 +75,8 @@ static void fix_offset_pos(struct stfl_widget *w)
 		if (stfl_widget_getkv_int(c, L"can_focus", 1) &&
 		    stfl_widget_getkv_int(c, L".display", 1))
 			maxpos= i;
+
+			if(maxpos == pos) break;
 	}
 
 	if (maxpos >= 0 && pos > maxpos)
@@ -85,6 +87,8 @@ static void fix_offset_pos(struct stfl_widget *w)
 
 	if (pos != orig_pos)
 		stfl_widget_setkv_int(w, L"pos", pos);
+
+	stfl_widget_setkv_str(w, L"pos_name", c->name ? c->name : L"");	
 }
 
 static void stfl_focus_prev_pos(struct stfl_widget *w)
@@ -180,8 +184,6 @@ static void wt_list_draw(struct stfl_widget *w, struct stfl_form *f, WINDOW *win
 				stfl_style(win, style_selected);
 				cur_style = style_selected;
 			}
-
-			stfl_widget_setkv_str(w, L"pos_name", c->name ? c->name : L"");	
 		} else {
 			stfl_style(win, style_normal);
 			cur_style = style_normal;
