@@ -105,7 +105,7 @@ static wchar_t *unquote(const wchar_t *text, int tlen)
 	if (!text)
 		return 0;
 
-	for (i=0; text[i] && (i<tlen || tlen<0); i++)
+	for (i=0; (i<tlen || tlen<0) && text[i]; i++)
 	{
 		if (text[i] == L'\'')
 			while (1) {
