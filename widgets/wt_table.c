@@ -26,8 +26,8 @@
 #include <stdlib.h>
 #include <assert.h>
 
-#define MAX_ROWS 20
-#define MAX_COLS 20
+#define MAX_ROWS 30
+#define MAX_COLS 30
 
 struct table_cell_data {
 	struct stfl_widget *w;
