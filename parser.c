@@ -129,7 +129,7 @@ finish_len_v_loop:;
 
 	value = malloc(sizeof(wchar_t)*(len_v+1));
 
-	for (i=j=0; text[i] && (i<tlen || tlen<0); i++)
+	for (i=j=0; (i<tlen || tlen<0) && text[i]; i++)
 	{
 		if (text[i] == L'\'')
 			while (1) {
