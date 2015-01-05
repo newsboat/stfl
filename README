@@ -401,6 +401,9 @@ supported by this widget:
 	style_focus
 		The style of this widget when it does have the focus.
 
+	size
+		The length (width) of the input box.
+
 	text
 		The value displayed in the input box.
 
