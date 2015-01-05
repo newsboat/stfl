@@ -561,7 +561,7 @@ void stfl_form_run(struct stfl_form *f, int timeout)
 			goto unshift_next_event;
 		}
 
-		if (w->type->f_process && w->type->f_process(w, fw, f, wch, rc == KEY_CODE_YES))
+		if (w->type->f_process && stfl_widget_getkv_int(w, L"process", 1) && w->type->f_process(w, fw, f, wch, rc == KEY_CODE_YES))
 			goto unshift_next_event;
 
 		if (stfl_widget_getkv_int(w, L"modal", 0))

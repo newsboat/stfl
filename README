@@ -624,7 +624,17 @@ autobind
 Setting autobind to '0' disables all automatically assigned keybindings for
 this widget. Actions which aren't set explicitly bind to keys using the
 bind_* variables are left unbind and can't be triggered using the user
-interface.
+interface. Setting autobind to '0' does not prevent typing of regular text
+into input and textedit widgets; for such functionality see 'process'. 
+
+process
+~~~~~~~~
+
+Setting process to '0' disables all keypress processing on the widget and
+passes the keypress events to the caller of stfl_run(). This setting is
+similar to autobind, but it will stop all key processing on the widget,
+including typing of regular text into input and textedit widgets. When
+this variable is set back to '1', processing resumes as usual.
 
 on_*
 ~~~~
