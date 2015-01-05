@@ -1,0 +1,45 @@
+#!/usr/bin/env splrun
+
+/* Example STFL Program
+ *
+ * Authors:
+ *   Davor Ocelic, docelic-stfl@spinlocksolutions.com
+ *   http://www.spinlocksolutions.com/
+ *
+ * License:
+ *   GPL
+ */
+
+load 'stfl';
+
+var layout = <<EOT
+table
+  list[list]
+    .expand:h
+    .border:lrtb
+    pos[listpos]:0
+    pos_name[listposname]:li0
+    listitem[li0] text[li0text]:"ListItem 0"
+    listitem[li1] text[li1text]:"ListItem 1"
+    listitem[li2] text[li2text]:"ListItem 2"
+  tablebr
+  label[label]
+    .expand:h
+    .border:lrtb
+    text[labeltext]:
+EOT;
+
+var stfl = stfl_create(layout);
+
+while (1) {
+	var event = stfl_run(stfl, 0);
+	var focus = stfl_get_focus(stfl);
+	var pos = stfl_get(stfl, 'listpos');
+	var pos_name = stfl_get(stfl, 'listposname');
+	var text = stfl_get(stfl, "${pos_name}text");
+
+	stfl_set(stfl, 'labeltext', "List is at position ${pos}, name ${pos_name}, text '${text}'");
+
+	if (event ~== '^L') stfl_redraw();
+	if (event ~== 'ESC') break;
+}
