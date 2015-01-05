@@ -134,6 +134,7 @@ extern void stfl_form_event(struct stfl_form *f, wchar_t *event);
 extern void stfl_form_run(struct stfl_form *f, int timeout);
 extern void stfl_form_reset();
 extern void stfl_form_free(struct stfl_form *f);
+extern void stfl_form_redraw();
 
 extern void stfl_check_setfocus(struct stfl_form *f, struct stfl_widget *w);
 

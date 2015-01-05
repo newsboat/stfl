@@ -184,6 +184,7 @@ static void stfl_modify_wrapper(struct stfl_form *f, const char *name, const cha
 static const char *stfl_error_wrapper();
 static void stfl_error_action_wrapper(const char *mode);
 extern void stfl_reset();
+extern void stfl_redraw();
 
 %init %{
 	atexit(stfl_reset);

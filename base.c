@@ -675,6 +675,12 @@ void stfl_form_reset()
 	}
 }
 
+void stfl_form_redraw()
+{
+	if (curses_active)
+		clearok(curscr, 1);
+}
+
 void stfl_form_free(struct stfl_form *f)
 {
 	pthread_mutex_lock(&f->mtx);

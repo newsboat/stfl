@@ -98,6 +98,16 @@ static struct spl_node *handler_stfl_run(struct spl_task *task, void *data)
 }
 
 /**
+ * Instruct STFL to completely redraw screen on next run
+ */
+// builtin stfl_redraw()
+static struct spl_node *handler_stfl_redraw(struct spl_task *task, void *data)
+{
+	stfl_redraw();
+	return 0;
+}
+
+/**
  * Return to standard text mode
  */
 // builtin stfl_reset()
@@ -255,6 +265,7 @@ void SPL_ABI(spl_mod_stfl_init)(struct spl_vm *vm, struct spl_module *mod, int r
 	spl_clib_reg(vm, "stfl_create", handler_stfl_create, 0);
 
 	spl_clib_reg(vm, "stfl_run", handler_stfl_run, 0);
+	spl_clib_reg(vm, "stfl_redraw", handler_stfl_redraw, 0);
 	spl_clib_reg(vm, "stfl_reset", handler_stfl_reset, 0);
 
 	spl_clib_reg(vm, "stfl_get", handler_stfl_get, 0);

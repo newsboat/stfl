@@ -42,8 +42,15 @@ int main()
 	stfl_ipool_flush(ipool);
 
 	const wchar_t *event = 0;
-	while (!event || wcscmp(event, L"ESC"))
+	while (1) {
 		event = stfl_run(f, 0);
+		if (event) {
+			if (!wcscmp(event, L"ESC"))
+				break;
+			else if (!wcscmp(event, L"^L"))
+				stfl_redraw();
+		}
+	}
 
 	stfl_reset();
 	printf("%ls", stfl_text(f, L"textedit"));

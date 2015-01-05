@@ -37,5 +37,6 @@
 %rename(error) stfl_error_wrapper;
 %rename(error_action) stfl_error_action_wrapper;
 
+%rename(redraw) stfl_redraw;
 %rename(reset) stfl_reset;
 

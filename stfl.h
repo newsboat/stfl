@@ -38,6 +38,7 @@ extern struct stfl_form *stfl_create(const wchar_t *text);
 extern void stfl_free(struct stfl_form *f);
 
 extern const wchar_t *stfl_run(struct stfl_form *f, int timeout);
+extern void stfl_redraw();
 extern void stfl_reset();
 
 extern const wchar_t * stfl_get(struct stfl_form *f, const wchar_t *name);

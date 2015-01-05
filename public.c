@@ -50,6 +50,11 @@ void stfl_free(struct stfl_form *f)
 	stfl_form_free(f);
 }
 
+void stfl_redraw()
+{
+	stfl_form_redraw();
+}
+
 const wchar_t *stfl_run(struct stfl_form *f, int timeout)
 {
 	stfl_form_run(f, timeout);
