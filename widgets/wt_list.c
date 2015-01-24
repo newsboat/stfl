@@ -88,7 +88,8 @@ static void fix_offset_pos(struct stfl_widget *w)
 	if (pos != orig_pos)
 		stfl_widget_setkv_int(w, L"pos", pos);
 
-	stfl_widget_setkv_str(w, L"pos_name", c->name ? c->name : L"");	
+	if (c)
+		stfl_widget_setkv_str(w, L"pos_name", c->name ? c->name : L"");	
 }
 
 static void stfl_focus_prev_pos(struct stfl_widget *w)
