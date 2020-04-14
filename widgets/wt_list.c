@@ -71,10 +71,12 @@ static void fix_offset_pos(struct stfl_widget *w)
 	int i;
 	int maxpos = -1;
 	struct stfl_widget *c;
+	struct stfl_widget *latest_widget = NULL;
 	for (i=0, c=w->first_child; c; i++, c=c->next_sibling) {
 		if (stfl_widget_getkv_int(c, L"can_focus", 1) &&
-		    stfl_widget_getkv_int(c, L".display", 1))
+			stfl_widget_getkv_int(c, L".display", 1))
 			maxpos= i;
+			latest_widget = c;
 
 			if(maxpos == pos) break;
 	}
@@ -88,8 +90,8 @@ static void fix_offset_pos(struct stfl_widget *w)
 	if (pos != orig_pos)
 		stfl_widget_setkv_int(w, L"pos", pos);
 
-	if (c)
-		stfl_widget_setkv_str(w, L"pos_name", c->name ? c->name : L"");	
+	if (latest_widget)
+		stfl_widget_setkv_str(w, L"pos_name", latest_widget->name ? latest_widget->name : L"");
 }
 
 static void stfl_focus_prev_pos(struct stfl_widget *w)
