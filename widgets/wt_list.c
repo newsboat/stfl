@@ -74,11 +74,12 @@ static void fix_offset_pos(struct stfl_widget *w)
 	struct stfl_widget *latest_widget = NULL;
 	for (i=0, c=w->first_child; c; i++, c=c->next_sibling) {
 		if (stfl_widget_getkv_int(c, L"can_focus", 1) &&
-			stfl_widget_getkv_int(c, L".display", 1))
-			maxpos= i;
+			stfl_widget_getkv_int(c, L".display", 1)) {
+			maxpos = i;
 			latest_widget = c;
 
-			if(maxpos == pos) break;
+			if (maxpos == pos) break;
+		}
 	}
 
 	if (maxpos >= 0 && pos > maxpos)
