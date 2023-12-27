@@ -16,30 +16,53 @@
 #  License along with this library; if not, write to the Free Software
 #  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 #  MA 02110-1301 USA
-#
 
+ifeq ($(OS),Windows_NT)
+    detected_OS := Windows
+    SHARED_LIB_EXT := dll
+    EXTRA_OBJS := wcwidth.o
+else
+    detected_OS := $(shell uname)
+    SHARED_LIB_EXT := so
+    EXTRA_OBJS :=
+endif
 include Makefile.cfg
 
 export CC = gcc -pthread
 export CFLAGS += -I. -Wall -Os -ggdb -D_GNU_SOURCE -fPIC
-export LDLIBS += -lncursesw
-
-SONAME  := libstfl.so.0
+export LDLIBS += $(shell pkg-config --libs ncursesw iconv)
+export CFLAGS += $(shell pkg-config --cflags ncursesw iconv)
 VERSION := 0.24
+ifeq ($(detected_OS),Windows)
+    SHARED_LIB_NAME := libstfl.$(VERSION).$(SHARED_LIB_EXT)
+    CFLAGS += -DNCURSES_STATIC
+else
+    SHARED_LIB_NAME := libstfl.so.$(VERSION)
+    SONAME := libstfl.so.0
+endif
 
-all: libstfl.so.$(VERSION) libstfl.a example
+all: $(SHARED_LIB_NAME) libstfl.a example
 
 example: libstfl.a example.o
 
-libstfl.a: public.o base.o parser.o dump.o style.o binding.o iconv.o \
+libstfl.a: public.o base.o parser.o dump.o style.o binding.o iconv.o $(EXTRA_OBJS) \
            $(patsubst %.c,%.o,$(wildcard widgets/*.c))
 	rm -f $@
 	ar qc $@ $^
 	ranlib $@
 
-libstfl.so.$(VERSION): public.o base.o parser.o dump.o style.o binding.o iconv.o \
-                       $(patsubst %.c,%.o,$(wildcard widgets/*.c))
-	$(CC) -shared -Wl,-soname,$(SONAME) -o $@ $(LDLIBS) $^
+$(SHARED_LIB_NAME): $(EXTRA_OBJS) public.o base.o parser.o dump.o style.o binding.o iconv.o \
+                    $(patsubst %.c,%.o,$(wildcard widgets/*.c))
+ifeq ($(detected_OS),Windows)
+	$(CC) -shared -o $@ $(CFLAGS) $^ $(LDLIBS)
+else
+	$(CC) -shared -Wl,-soname,$(SONAME) -o $@ $(CFLAGS) $^ $(LDLIBS)
+endif
+
+ifeq ($(detected_OS),Windows)
+wcwidth.o: wcwidth.c
+	$(CC) $(CFLAGS) -c -o $@ $^
+endif
 
 clean:
 	rm -f libstfl.a example core core.* *.o Makefile.deps
