@@ -30,12 +30,15 @@ include Makefile.cfg
 
 export CC = gcc -pthread
 export CFLAGS += -I. -Wall -Os -ggdb -D_GNU_SOURCE -fPIC
-export LDLIBS += $(shell pkg-config --libs ncursesw iconv)
-export CFLAGS += $(shell pkg-config --cflags ncursesw iconv)
+export LDLIBS += $(shell pkg-config --libs ncursesw)
+export CFLAGS += $(shell pkg-config --cflags ncursesw)
 VERSION := 0.24
 ifeq ($(detected_OS),Windows)
     SHARED_LIB_NAME := libstfl.$(VERSION).$(SHARED_LIB_EXT)
     CFLAGS += -DNCURSES_STATIC
+    export LDLIBS += $(shell pkg-config --libs iconv)
+    export CFLAGS += $(shell pkg-config --cflags iconv)
+VERSION := 0.24
 else
     SHARED_LIB_NAME := libstfl.so.$(VERSION)
     SONAME := libstfl.so.0
@@ -96,10 +99,11 @@ ifeq ($(FOUND_SPL),1)
 include spl/Makefile.snippet
 endif
 
+ifneq ($(detected_OS),Windows)
 ifeq ($(FOUND_SWIG)$(FOUND_PERL5),11)
 include perl5/Makefile.snippet
 endif
-
+endif
 ifeq ($(FOUND_SWIG)$(FOUND_PYTHON),11)
 include python/Makefile.snippet
 endif
