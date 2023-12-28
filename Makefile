@@ -89,9 +89,15 @@ install: all stfl.pc
 	install -m 644 libstfl.a $(DESTDIR)$(prefix)/$(libdir)
 	install -m 644 stfl.h $(DESTDIR)$(prefix)/include/
 	install -m 644 stfl.pc $(DESTDIR)$(prefix)/$(libdir)/pkgconfig/
+
+    # Handle installation of shared library based on the operating system
+ifeq ($(detected_OS),Windows)
+	install -m 644 libstfl.$(VERSION).dll $(DESTDIR)$(prefix)/$(libdir)
+	cp $(DESTDIR)$(prefix)/$(libdir)/libstfl.$(VERSION).dll $(DESTDIR)$(prefix)/$(libdir)/libstfl.dll
+else
 	install -m 644 libstfl.so.$(VERSION) $(DESTDIR)$(prefix)/$(libdir)
 	ln -fs libstfl.so.$(VERSION) $(DESTDIR)$(prefix)/$(libdir)/libstfl.so
-
+endif
 stfl.pc: stfl.pc.in
 	sed 's,@VERSION@,$(VERSION),g' < $< | sed 's,@PREFIX@,$(prefix),g' > $@
 
