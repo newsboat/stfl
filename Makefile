@@ -109,13 +109,14 @@ ifneq ($(detected_OS),Windows)
 ifeq ($(FOUND_SWIG)$(FOUND_PERL5),11)
 include perl5/Makefile.snippet
 endif
-endif
-ifeq ($(FOUND_SWIG)$(FOUND_PYTHON),11)
-include python/Makefile.snippet
-endif
 
 ifeq ($(FOUND_SWIG)$(FOUND_RUBY),11)
 include ruby/Makefile.snippet
+endif
+
+endif
+ifeq ($(FOUND_SWIG)$(FOUND_PYTHON),11)
+include python/Makefile.snippet
 endif
 
 .PHONY: all clean install install_spl
