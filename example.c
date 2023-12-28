@@ -25,16 +25,32 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
-
-#include <langinfo.h>
 #include <locale.h>
+
+#ifdef _WIN32
+    #include <windows.h>
+#else
+    #include <langinfo.h>
+#endif
 
 int main()
 {
-	if (!setlocale(LC_ALL,""))
-		fprintf(stderr, "WARING: Can't set locale!\n");
+    if (!setlocale(LC_ALL,""))
+        fprintf(stderr, "WARNING: Can't set locale!\n");
 
-	struct stfl_ipool *ipool = stfl_ipool_create(nl_langinfo(CODESET));
+    struct stfl_ipool *ipool;
+
+    #ifdef _WIN32
+        // Windows specific initialization
+        // Get the current Windows ANSI code page
+        UINT codePage = GetACP();
+        wchar_t codePageStr[10];
+        swprintf(codePageStr, 10, L"%u", codePage);
+        ipool = stfl_ipool_create(codePageStr);
+    #else
+        // POSIX specific initialization
+        ipool = stfl_ipool_create(nl_langinfo(CODESET));
+    #endif
 	struct stfl_form *f = stfl_create(L"<example.stfl>");
 
 	stfl_set(f, L"value_a", L"This is a little");

@@ -24,6 +24,13 @@
 #define STFL_H 1
 
 #include <wchar.h>
+//in case of windows use wcwdith.c
+#ifdef _WIN32
+#include "wcwidth.h"
+#define wcwidth mk_wcwidth
+#define wcswidth mk_wcswidth
+#endif
+
 
 #ifdef  __cplusplus
 extern "C" {
