@@ -56,12 +56,15 @@ static void wt_checkbox_draw(struct stfl_widget *w, struct stfl_form *f, WINDOW 
 			stfl_widget_getkv_str(w, L"text_1", L"[X]") :
 			stfl_widget_getkv_str(w, L"text_0", L"[ ]");
 
-	wchar_t *fillup = malloc(sizeof(wchar_t)*(w->w + 1));
-	for (i=0;i < w->w;++i)
-		fillup[i] = L' ';
-	fillup[w->w] = L'\0';
-	mvwaddnwstr(win, w->y, w->x, fillup, wcswidth(fillup,wcslen(fillup)));
-	free(fillup);
+	if (w->w >= 0) {
+		wchar_t *fillup = calloc(w->w + 1, sizeof(wchar_t));
+		for (i=0;i < w->w;++i) {
+			fillup[i] = L' ';
+		}
+		fillup[w->w] = L'\0';
+		mvwaddnwstr(win, w->y, w->x, fillup, wcswidth(fillup,wcslen(fillup)));
+		free(fillup);
+	}
 
 	if (is_richtext)
 		stfl_print_richtext(w, win, w->y, w->x, text, w->w, style, 0);

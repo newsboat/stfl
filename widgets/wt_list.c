@@ -195,8 +195,8 @@ static void wt_list_draw(struct stfl_widget *w, struct stfl_form *f, WINDOW *win
 
 		text = stfl_widget_getkv_str(c, L"text", L"");
 
-		if (1) {
-			wchar_t *fillup = malloc(sizeof(wchar_t)*(w->w + 1));
+		if (w->w >= 0) {
+			wchar_t *fillup = calloc(w->w + 1, sizeof(wchar_t));
 			for (j=0;j < w->w;++j) {
 				fillup[j] = ' ';
 			}
